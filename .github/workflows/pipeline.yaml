@@ -26,10 +26,20 @@ jobs:
           uses: golangci/golangci-lint-action@v3
           with:
             working-directory: Webservice
+    
+    test-webservice:
+        runs-on: ubuntu-latest
+        steps:
+        - name: Checkout code
+          uses: actions/checkout@v2
+        - name: Run tests
+          run: | 
+            cd Webservice
+            go test ./...
 
     build-webservice:
         runs-on: ubuntu-latest
-        needs: [lint-webservice]
+        needs: [lint-webservice, test-webservice]
         steps:
         - name: Checkout code
           uses: actions/checkout@v2
@@ -61,6 +71,16 @@ jobs:
           with:
             working-directory: OCR_Service/Watcher
     
+    test-ocr-watcher:
+        runs-on: ubuntu-latest
+        steps:
+        - name: Checkout code
+          uses: actions/checkout@v2
+        - name: Run tests
+          run: | 
+            cd OCR_Service/Watcher
+            go test ./...
+    
     lint-ocr-worker:
         runs-on: ubuntu-latest
         steps:
@@ -72,9 +92,20 @@ jobs:
           working-directory: OCR_Service/Worker
           run: flake8 .
     
+    test-ocr-worker:
+        runs-on: ubuntu-latest
+        steps:
+        - name: Checkout code
+          uses: actions/checkout@v2
+        - name: Install dependencies
+          run: | 
+            pip install pytest
+            cd OCR_Service/Worker
+            pytest
+    
     build-ocr-watcher:
         runs-on: ubuntu-latest
-        needs: [lint-ocr-watcher]
+        needs: [lint-ocr-watcher, test-ocr-watcher]
         steps:
         - name: Checkout code
           uses: actions/checkout@v2
@@ -163,9 +194,19 @@ jobs:
           with:
             working-directory: Notification_Service
 
+    test-notification:
+        runs-on: ubuntu-latest
+        steps:
+        - name: Checkout code
+          uses: actions/checkout@v2
+        - name: Run tests
+          run: | 
+            cd Notification_service
+            go test ./...
+
     build-notification:
         runs-on: ubuntu-latest
-        needs: [lint-notification]
+        needs: [lint-notification, test-notification]
         steps:
         - name: Checkout code
           uses: actions/checkout@v2
