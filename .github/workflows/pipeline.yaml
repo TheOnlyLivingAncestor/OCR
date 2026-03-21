@@ -1,0 +1,170 @@
+name: Pipeline
+
+on:
+  push:
+    branches:
+      - master
+      - main
+  workflow_dispatch:
+
+env:
+  DOCKERHUB_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+  DOCKERHUB_KEY: ${{ secrets.DOCKER_KEY }}
+  WEBSERVICE_IMAGE_NAME: "ocr-webservice"
+  OCR_WATCHER_IMAGE_NAME: "ocr-watcher"
+  OCR_WORKER_IMAGE_NAME: "ocr-worker"
+  NOTIFICATION_IMAGE_NAME: "notification-service"
+
+jobs:
+
+    lint-webservice:
+        runs-on: ubuntu-latest
+        steps:
+        - name: Run golangci-lint
+          uses: golangci/golangci-lint-action@v3
+          with:
+            working-directory: Webservice
+
+    build-webservice:
+        runs-on: ubuntu-latest
+        needs: [lint-webservice]
+        steps:
+        - name: Checkout code
+          uses: actions/checkout@v2
+
+        - name: Login to Docker Hub
+          uses: docker/login-action@v1
+          with:
+            username: ${{ env.DOCKERHUB_USERNAME }}
+            password: ${{ env.DOCKERHUB_KEY }}
+
+        - name: Set up Docker Buildx
+          uses: docker/setup-buildx-action@v2
+
+        - name: Build and push Docker image
+          uses: docker/build-push-action@v4
+          with:
+            context: ./Webservice
+            push: true
+            platforms: linux/arm64
+            tags: ${{ env.DOCKERHUB_USERNAME }}/${{ env.WEBSERVICE_IMAGE_NAME }}:${{ github.sha }}
+
+        - name: Update webservice values.yaml
+          run: |
+            cd Webservice/helm
+            sed -i 's|APP_VERSION:.*|APP_VERSION: '${{ github.sha }}'|' values.yaml 
+            git config --global user.name 'GitHub Actions'
+            git config --global user.email 'actions@github.com'
+            git add values.yaml
+            git commit -m "Update values.yaml"
+            git push
+    
+    
+    lint-ocr-watcher:
+        runs-on: ubuntu-latest
+        steps:
+        - name: Run golangci-lint
+          uses: golangci/golangci-lint-action@v3
+          with:
+            working-directory: OCR_Service/Watcher
+    
+    lint-ocr-worker:
+        runs-on: ubuntu-latest
+        steps:
+        - name: Install flake8
+          run: pip install flake8
+        - name: Run python lint
+          working-directory: OCR_Service/Worker
+          run: flake8 .
+    
+    build-ocr:
+        runs-on: ubuntu-latest
+        needs: [lint-ocr-watcher, lint-ocr-worker]
+        steps:
+        - name: Checkout code
+          uses: actions/checkout@v2
+
+        - name: Login to Docker Hub
+          uses: docker/login-action@v1
+          with:
+            username: ${{ env.DOCKERHUB_USERNAME }}
+            password: ${{ env.DOCKERHUB_KEY }}
+
+        - name: Set up Docker Buildx
+          uses: docker/setup-buildx-action@v2
+
+        - name: Build and push watcher Docker image
+          uses: docker/build-push-action@v4
+          with:
+            context: ./Webservice
+            push: true
+            platforms: linux/arm64
+            tags: ${{ env.DOCKERHUB_USERNAME }}/${{ env.OCR_WATCHER_IMAGE_NAME }}:${{ github.sha }}
+        
+        - name: Build and push worker Docker image
+          uses: docker/build-push-action@v4
+          with:
+            context: ./Webservice
+            push: true
+            platforms: linux/arm64
+            tags: ${{ env.DOCKERHUB_USERNAME }}/${{ env.OCR_WORKER_IMAGE_NAME }}:${{ github.sha }}
+
+        - name: Update OCR service values.yaml
+          run: |
+            cd OCR_Service/helm
+            sed -i 's|APP_VERSION:.*|APP_VERSION: '${{ github.sha }}'|' values.yaml 
+            git config --global user.name 'GitHub Actions'
+            git config --global user.email 'actions@github.com'
+            git add values.yaml
+            git commit -m "Update values.yaml"
+            git push
+
+    lint-notification:
+        runs-on: ubuntu-latest
+        steps:
+        - name: Run golangci-lint
+          uses: golangci/golangci-lint-action@v3
+          with:
+            working-directory: Notification_Service
+
+    build-notification:
+        runs-on: ubuntu-latest
+        needs: [lint-notification]
+        steps:
+        - name: Checkout code
+          uses: actions/checkout@v2
+
+        - name: Login to Docker Hub
+          uses: docker/login-action@v1
+          with:
+            username: ${{ env.DOCKERHUB_USERNAME }}
+            password: ${{ env.DOCKERHUB_KEY }}
+
+        - name: Set up Docker Buildx
+          uses: docker/setup-buildx-action@v2
+
+        - name: Build and push watcher Docker image
+          uses: docker/build-push-action@v4
+          with:
+            context: ./Webservice
+            push: true
+            platforms: linux/arm64
+            tags: ${{ env.DOCKERHUB_USERNAME }}/${{ env.NOTIFICATION_IMAGE_NAME }}:${{ github.sha }}
+        
+        - name: Build and push worker Docker image
+          uses: docker/build-push-action@v4
+          with:
+            context: ./Webservice
+            push: true
+            platforms: linux/arm64
+            tags: ${{ env.DOCKERHUB_USERNAME }}/${{ env.NOTIFICATION_IMAGE_NAME }}:${{ github.sha }}
+
+        - name: Update OCR service values.yaml
+          run: |
+            cd Notification_Service/helm
+            sed -i 's|APP_VERSION:.*|APP_VERSION: '${{ github.sha }}'|' values.yaml 
+            git config --global user.name 'GitHub Actions'
+            git config --global user.email 'actions@github.com'
+            git add values.yaml
+            git commit -m "Update values.yaml"
+            git push
