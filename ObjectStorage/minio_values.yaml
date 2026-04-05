@@ -1,0 +1,17 @@
+mode: standalone
+
+rootUser: "minioadmin"
+rootPassword: "minioadmin"
+replicas: 1
+
+persistence:
+  enabled: true
+  size: 5Gi
+
+resources:
+  requests:
+    memory: 256Mi
+    cpu: 100m
+  
+consoleService:
+  type: NodePort

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="hu">
+    <head>
+        <meta charset="UTF-8">
+        <title>Szövegfelismerés</title>
+        <script src="/static/script.js" defer></script>
+    </head>
+    <body>
+        <h1>OCR szövegfelismerés</h1>
+        <p>Szövegfelismeréshez egy képet kell feltölteni, annak rövid leírásával. <br />
+        </p>
+        <form id="detectionForm">
+            <label for="image">Kép, amelyről a szöveget fel kell ismerni: </label>
+            <input type="file" id="image" name="image" accept="image/*" required /> <br>
+            <label for="description">A kép rövid leírása: </label>
+            <input type="text" id="description" name="description" required />  <br>
+            <input type="submit" value="Szöveg felismerése" />
+        </form>
+        <div class="parent" style="display: none;">
+            <div class="child" id="imageContainer">
+            </div> 
+            <div class="child" id="resultContainer">
+                <h2>Felismert szöveg:</h2>
+            </div>
+        </div>
+    </body>
+</html>
