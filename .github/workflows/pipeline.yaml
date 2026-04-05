@@ -70,6 +70,7 @@ jobs:
           uses: golangci/golangci-lint-action@v6
           with:
             working-directory: OCR_Service/Watcher
+            version: latest
     
     test-ocr-watcher:
         runs-on: ubuntu-latest
