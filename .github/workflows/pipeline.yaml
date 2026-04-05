@@ -67,10 +67,9 @@ jobs:
         - name: Checkout code
           uses: actions/checkout@v2
         - name: Run golangci-lint
-          uses: golangci/golangci-lint-action@v3
+          uses: golangci/golangci-lint-action@v6
           with:
             working-directory: OCR_Service/Watcher
-            version: latest
     
     test-ocr-watcher:
         runs-on: ubuntu-latest
