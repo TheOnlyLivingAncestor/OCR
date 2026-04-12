@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 	"net/http"
 	"os"
@@ -80,6 +81,29 @@ func ocrRequestHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func HealthzHandler(w http.ResponseWriter, r *http.Request) {
+	//This handler should only accept GET requests
+	if r.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+	json, err := json.Marshal("OK")
+	if err != nil {
+		log.Printf("Failed to marshal response with error %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		log.Printf("API request failed: %s", err)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	_, err = w.Write(json)
+	if err != nil {
+		log.Printf("Failed to write response with error %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
 func main() {
 	// Set the default logger to a fancier log format.
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
@@ -96,6 +120,7 @@ func main() {
 		http.ServeFile(w, r, "static/index.html")
 	})
 	http.HandleFunc("/process", ocrRequestHandler)
+	http.HandleFunc("/healthz", HealthzHandler)
 
 	//HTTP server starts in a goroutine to handle graceful shutdown
 	s := &http.Server{Addr: ":8080"}
