@@ -19,6 +19,7 @@ FROM scratch
 
 # Copy the binary from the host.
 COPY --from=build /webservice .
+COPY ./static /static
 
 # Tell Docker to execute this command on a `docker run`.
 CMD ["/webservice"]
