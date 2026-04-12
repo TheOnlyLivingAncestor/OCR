@@ -1,4 +1,4 @@
 #egyenlőre az image tagolása a lényeg -> a helm chart további részét majd kitöltjük a fejlesztéskor
 env:
   #APP_VERSION egy string, amely a docker image tag-et fogja tartalmazni. A commit sha-t fogjuk erre használni.
-  APP_VERSION: 6db1fe0eb257e43cbce259a87684857a9112135a
+  APP_VERSION: 288e8fb9d59ae522f8d32c8404c6ea15307cadd4

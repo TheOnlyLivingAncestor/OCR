@@ -1,4 +1,4 @@
 # Egyenlőre csak az image build a fontos -> a részletek és a helm chart további elemei majd implementációkor
 env:
   #A két image egyszerre készül -> elég egy APP_VERSION (ha mégis kell több, akkor majd átírjuk)
-  APP_VERSION: 6db1fe0eb257e43cbce259a87684857a9112135a
+  APP_VERSION: 288e8fb9d59ae522f8d32c8404c6ea15307cadd4
