@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ocr-webservice
+spec:
+  selector:
+    matchLabels:
+      app: ocr-webservice
+  template:
+    metadata:
+      labels:
+        app: ocr-webservice
+    spec:
+      containers:
+        - name: ocr-webservice
+          image: vitezalexandra/ocr-webservice:{{ .Values.env.APP_VERSION }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
