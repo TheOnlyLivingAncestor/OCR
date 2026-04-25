@@ -38,7 +38,11 @@ func TestHealthz(t *testing.T) {
 	//Check if the response is what we expect -> return code 200
 	response_body := response.Body
 	var body string
-	json.Unmarshal(response_body.Bytes(), &body)
+	err := json.Unmarshal(response_body.Bytes(), &body)
+	if err != nil {
+		logger.Error("Unmarshal of json failed", "error", err)
+		t.Errorf("Could not unmarshal return value of Healthz endpoint with error %v", err)
+	}
 	want := "OK"
 	if body != want {
 		t.Errorf("Healthz endpoint was expected to return %v, but got %v", want, body)

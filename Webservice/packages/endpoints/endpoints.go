@@ -18,7 +18,11 @@ func NewOCRRequestHandler(logger *slog.Logger) http.HandlerFunc {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		defer image.Close()
+		defer func() {
+			if err := image.Close(); err != nil {
+				logger.Info("Error occurred while closing image", "error", err)
+			}
+		}()
 		logger.Info("Image from request read successfully", "name", handler.Filename, "size in bytes", handler.Size)
 
 		description := r.FormValue("description")
