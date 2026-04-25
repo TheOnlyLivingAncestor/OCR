@@ -32,6 +32,8 @@ func NewOCRRequestHandler(logger *slog.Logger) http.HandlerFunc {
 			return
 		}
 		logger.Info("Description of image read successfully", "text", description)
+		//Upload image to object storage
+
 	}
 }
 

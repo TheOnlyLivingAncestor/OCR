@@ -1,7 +1,8 @@
 package main
 
 import (
-	"OCR/webservice/packages/endpoints"
+	"OCR/webservice/internal/endpoints"
+	"OCR/webservice/internal/storage"
 	"context"
 	"log"
 	"log/slog"
@@ -10,7 +11,8 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
-	//"github.com/minio/minio-go/v7"
+
+	"github.com/minio/minio-go/v7/pkg/credentials"
 )
 
 var MinioAddr = "minio.minio.svc.cluster.local"
@@ -71,6 +73,16 @@ func main() {
 
 	read_environment(logger)
 
+	//init MinIO storage
+	cred := credentials.NewStaticV4(MinioUser, MinioPassword, "")
+	minio_storage := storage.NewMinioStorage(MinioAddr+":"+MinioPort, cred, false, MinioBucket, logger)
+	ctx := context.Background()
+	err := minio_storage.EnsureBucket(ctx)
+	if err != nil {
+		logger.Error("Failed to ensure storage bucket, exiting", "error", err)
+		os.Exit(1)
+	}
+
 	// Static HTTP handler to serve files from the static folder.
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
@@ -89,7 +101,7 @@ func main() {
 	logger.Info("Shutdown signal received")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
 	defer cancel()
-	err := s.Shutdown(ctx)
+	err = s.Shutdown(ctx)
 	if err != nil {
 		logger.Info("Graceful server shutdown failed with", "error", err)
 	} else {

@@ -7,5 +7,5 @@ minio:
   service_name: minio.minio.svc.cluster.local
   service_port: 9000
   bucket_name: ocr_bucket
-  username: minioadmin
-  password: minioadmin
+  username: ocr-webservice
+  password: ocr-webservice-minio-password
