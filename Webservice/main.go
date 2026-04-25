@@ -83,6 +83,8 @@ func main() {
 		os.Exit(1)
 	}
 
+	logger.Info("Adding this here so that I can commit")
+
 	// Static HTTP handler to serve files from the static folder.
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 

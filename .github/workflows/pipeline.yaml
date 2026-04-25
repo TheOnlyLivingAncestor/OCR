@@ -194,6 +194,7 @@ jobs:
     update-all-values:
         runs-on: ubuntu-latest
         needs: [build-ocr-watcher, build-ocr-worker, build-notification, build-webservice, changes]
+        if: ${{ always() && ( needs.changes.outputs.webservice == 'true' || needs.changes.outputs.ocr-watcher == 'true' || needs.changes.outputs.ocr-worker == 'true' || needs.changes.outputs.notification == 'true') }}
         steps:
         - name: Checkout code
           uses: actions/checkout@v2
