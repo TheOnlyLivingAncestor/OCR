@@ -6,6 +6,6 @@ env:
 minio:
   service_name: minio.minio.svc.cluster.local
   service_port: 9000
-  bucket_name: ocr_bucket
+  bucket_name: ocr-bucket
   username: JzcIs0mOTKUDvWKJ1Dp3
   password: 0Y5GmgKrTs9MYSctrmsPdzFsKMZMpUwT04oCZLIu
