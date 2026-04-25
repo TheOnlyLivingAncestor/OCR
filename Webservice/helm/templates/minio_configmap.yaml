@@ -1,0 +1,9 @@
+#Minio URL és bucket név
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: minio-configmap
+data:
+  minio_service_name = {{ .Values.minio.service_name}}
+  minio_service_port = {{ .Values.minio.service_port}}
+  minio_bucket_name = {{ .Values.minio.bucket_name}}

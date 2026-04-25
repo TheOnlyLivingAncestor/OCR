@@ -1,8 +1,8 @@
 package main
 
 import (
+	"OCR/webservice/endpoints"
 	"context"
-	"encoding/json"
 	"log"
 	"net/http"
 	"os"
@@ -13,6 +13,7 @@ import (
 )
 
 var MinioAddr = "minio.minio.svc.cluster.local"
+var MinioPort = 9000
 var MinioBucket = "ocrbucket"
 var MinioUser = "admin"
 var MinioPassword = "admin"
@@ -57,53 +58,6 @@ func startServer(s *http.Server) {
 	}
 }
 
-func ocrRequestHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
-	image, handler, err := r.FormFile("image")
-	if err != nil {
-		log.Printf("Error during image parsing: %v", err)
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	defer image.Close()
-	log.Printf("Image from request read successfully with name %s and size %v bytes", handler.Filename, handler.Size)
-
-	description := r.FormValue("description")
-	if description == "" {
-		log.Println("Description of image is empty")
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	log.Printf("Description of image read successfully: %v", description)
-
-}
-
-func HealthzHandler(w http.ResponseWriter, r *http.Request) {
-	//This handler should only accept GET requests
-	if r.Method != http.MethodGet {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
-	json, err := json.Marshal("OK")
-	if err != nil {
-		log.Printf("Failed to marshal response with error %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		log.Printf("API request failed: %s", err)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	_, err = w.Write(json)
-	if err != nil {
-		log.Printf("Failed to write response with error %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	w.WriteHeader(http.StatusOK)
-}
-
 func main() {
 	// Set the default logger to a fancier log format.
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
@@ -112,15 +66,9 @@ func main() {
 	// Static HTTP handler to serve files from the static folder.
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/" {
-			http.NotFound(w, r)
-			return
-		}
-		http.ServeFile(w, r, "static/index.html")
-	})
-	http.HandleFunc("/process", ocrRequestHandler)
-	http.HandleFunc("/healthz", HealthzHandler)
+	http.HandleFunc("/", endpoints.UIHandler)
+	http.HandleFunc("/process", endpoints.OcrRequestHandler)
+	http.HandleFunc("/healthz", endpoints.HealthzHandler)
 
 	//HTTP server starts in a goroutine to handle graceful shutdown
 	s := &http.Server{Addr: ":8080"}

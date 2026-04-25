@@ -2,3 +2,10 @@
 env:
   #APP_VERSION egy string, amely a docker image tag-et fogja tartalmazni. A commit sha-t fogjuk erre használni.
   APP_VERSION: e19b352d7e6c04fa523a817e9102ad6f43944976
+#Minden, amit a webservice felhasznál a minio eléréséhez, itt van definiálva
+minio:
+  service_name: minio.minio.svc.cluster.local
+  service_port: 9000
+  bucket_name: ocr_bucket
+  username: minioadmin
+  password: minioadmin
