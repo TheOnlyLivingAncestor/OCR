@@ -1,12 +1,16 @@
 package endpoints
 
 import (
+	"OCR/webservice/internal/storage"
 	"encoding/json"
 	"log/slog"
 	"net/http"
+	"path/filepath"
+
+	"github.com/google/uuid"
 )
 
-func NewOCRRequestHandler(logger *slog.Logger) http.HandlerFunc {
+func NewOCRRequestHandler(logger *slog.Logger, minio_client *storage.MinioStorage) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			w.WriteHeader(http.StatusMethodNotAllowed)
@@ -33,7 +37,20 @@ func NewOCRRequestHandler(logger *slog.Logger) http.HandlerFunc {
 		}
 		logger.Info("Description of image read successfully", "text", description)
 		//Upload image to object storage
-
+		id := uuid.New().String()
+		filename := id + filepath.Ext(handler.Filename)
+		metadata := make(map[string]string)
+		metadata["description"] = description
+		metadata["jobID"] = id
+		minio_client.Upload(r.Context(),
+			storage.UploadRequest{
+				File:        image,
+				Size:        handler.Size,
+				FileName:    filename,
+				ContentType: handler.Header.Get("Content-Type"),
+				Metadata:    metadata,
+			},
+		)
 	}
 }
 

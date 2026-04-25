@@ -83,13 +83,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	logger.Info("Adding this here so that I can commit")
-
 	// Static HTTP handler to serve files from the static folder.
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
 	http.HandleFunc("/", endpoints.NewUIHandler(logger))
-	http.HandleFunc("/process", endpoints.NewOCRRequestHandler(logger))
+	http.HandleFunc("/process", endpoints.NewOCRRequestHandler(logger, minio_storage))
 	http.HandleFunc("/healthz", endpoints.NewHealthzHandler(logger))
 
 	//HTTP server starts in a goroutine to handle graceful shutdown

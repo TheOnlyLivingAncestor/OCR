@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"io"
 	"log/slog"
 
 	"github.com/minio/minio-go/v7"
@@ -9,7 +10,15 @@ import (
 )
 
 type Storage interface {
-	Upload()
+	Upload(ctx context.Context, data []byte, description string) error
+}
+
+type UploadRequest struct {
+	File        io.Reader
+	Size        int64
+	FileName    string
+	ContentType string
+	Metadata    map[string]string
 }
 
 type MinioStorage struct {
@@ -47,6 +56,19 @@ func (storage *MinioStorage) EnsureBucket(ctx context.Context) error {
 			storage.logger.Error("Failed to create bucket", "name", storage.bucket, "error", err)
 			return err
 		}
+	}
+	return nil
+}
+
+func (storage *MinioStorage) Upload(ctx context.Context, request UploadRequest) error {
+	_, err := storage.client.PutObject(ctx, storage.bucket, request.FileName, request.File, request.Size,
+		minio.PutObjectOptions{
+			ContentType:  request.ContentType,
+			UserMetadata: request.Metadata,
+		})
+	if err != nil {
+		storage.logger.Error("Error occurred during image upload", "error", err)
+		return err
 	}
 	return nil
 }
