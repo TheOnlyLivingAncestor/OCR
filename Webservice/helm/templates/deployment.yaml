@@ -17,17 +17,17 @@ spec:
           env:
             - name: MINIO_ADDR
               valueFrom:
-                congigMapKeyRef:
+                configMapKeyRef:
                   name: minio-configmap
                   key: minio_service_name
             - name: MINIO_PORT
               valueFrom:
-                congigMapKeyRef:
+                configMapKeyRef:
                   name: minio-configmap
                   key: minio_service_port
             - name: MINIO_BUCKET
               valueFrom:
-                congigMapKeyRef:
+                configMapKeyRef:
                   name: minio-configmap
                   key: minio_bucket_name
             - name: MINIO_USER
