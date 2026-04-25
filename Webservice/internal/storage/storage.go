@@ -23,6 +23,7 @@ func NewMinioStorage(endpoint string, cred *credentials.Credentials, SSL bool, b
 		Creds:  cred,
 		Secure: SSL,
 	})
+	logger.Debug("Used data", "endpoint", endpoint, "credentials", cred, "bucket", bucket)
 	if err != nil {
 		logger.Error("Failed to authorize to MinIO", "error", err)
 	}
