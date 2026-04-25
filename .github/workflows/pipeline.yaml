@@ -16,8 +16,34 @@ env:
   NOTIFICATION_IMAGE_NAME: "notification-service"
 
 jobs:
+    changes:
+      runs-on: ubuntu-latest
+      outputs:
+        webservice: ${{ steps.filter.outputs.webservice }}
+        ocr-watcher: ${{ steps.filter.outputs.ocr-watcher }}
+        ocr-worker: ${{ steps.filter.outputs.ocr-worker }}
+        notification: ${{ steps.filter.outputs.notification }}
+      steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - uses: dorny/paths-filter@v4
+        id: filter
+        with:
+          filters: |
+            webservice:
+              - 'Webservice/!(helm/**)/**'
+            ocr-watcher:
+              - 'OCR_Service/Watcher/**'
+            ocr-worker:
+              - 'OCR_Service/Worker/**'
+            notification:
+              - 'Notification_service/!(helm/**)/**'
+
+
 
     lint-webservice:
+        needs: changes
+        if: ${{ needs.changes.outputs.webservice == 'true' }}
         runs-on: ubuntu-latest
         steps:
         - name: Checkout code
@@ -28,6 +54,8 @@ jobs:
             working-directory: Webservice
     
     test-webservice:
+        needs: changes
+        if: ${{ needs.changes.outputs.webservice == 'true' }}
         runs-on: ubuntu-latest
         steps:
         - name: Checkout code
@@ -39,7 +67,8 @@ jobs:
 
     build-webservice:
         runs-on: ubuntu-latest
-        needs: [lint-webservice, test-webservice]
+        needs: [lint-webservice, test-webservice, changes]
+        if: ${{ needs.changes.outputs.webservice == 'true' }}
         steps:
         - name: Checkout code
           uses: actions/checkout@v2
@@ -62,6 +91,8 @@ jobs:
             tags: ${{ env.DOCKERHUB_USERNAME }}/${{ env.WEBSERVICE_IMAGE_NAME }}:${{ github.sha }}
     
     lint-ocr-watcher:
+        needs: changes
+        if: ${{ needs.changes.outputs.ocr-watcher == 'true' }}
         runs-on: ubuntu-latest
         steps:
         - name: Checkout code
@@ -73,6 +104,8 @@ jobs:
             version: latest
     
     test-ocr-watcher:
+        needs: changes
+        if: ${{ needs.changes.outputs.ocr-watcher == 'true' }}
         runs-on: ubuntu-latest
         steps:
         - name: Checkout code
@@ -83,6 +116,8 @@ jobs:
             go test ./...
     
     lint-ocr-worker:
+        needs: changes
+        if: ${{ needs.changes.outputs.ocr-worker == 'true' }}
         runs-on: ubuntu-latest
         steps:
         - name: Checkout code
@@ -94,6 +129,8 @@ jobs:
           run: flake8 .
     
     test-ocr-worker:
+        needs: changes
+        if: ${{ needs.changes.outputs.ocr-worker == 'true' }}
         runs-on: ubuntu-latest
         steps:
         - name: Checkout code
@@ -106,7 +143,8 @@ jobs:
     
     build-ocr-watcher:
         runs-on: ubuntu-latest
-        needs: [lint-ocr-watcher, test-ocr-watcher]
+        needs: [lint-ocr-watcher, test-ocr-watcher, changes]
+        if: ${{ needs.changes.outputs.ocr-watcher == 'true' }}
         steps:
         - name: Checkout code
           uses: actions/checkout@v2
@@ -130,7 +168,8 @@ jobs:
 
     build-ocr-worker:
         runs-on: ubuntu-latest
-        needs: [lint-ocr-worker, test-ocr-worker]
+        needs: [lint-ocr-worker, test-ocr-worker, changes]
+        if: ${{ needs.changes.outputs.ocr-worker == 'true' }}
         steps:
         - name: Checkout code
           uses: actions/checkout@v2
@@ -154,11 +193,12 @@ jobs:
 
     update-all-values:
         runs-on: ubuntu-latest
-        needs: [build-ocr-watcher, build-ocr-worker, build-notification, build-webservice]
+        needs: [build-ocr-watcher, build-ocr-worker, build-notification, build-webservice, changes]
         steps:
         - name: Checkout code
           uses: actions/checkout@v2
         - name: Update webservice values.yaml
+          if: ${{ needs.changes.outputs.webservice == 'true' }}
           run: |
             cd Webservice/helm
             sed -i 's|APP_VERSION:.*|APP_VERSION: '${{ github.sha }}'|' values.yaml 
@@ -166,6 +206,7 @@ jobs:
             git config --global user.email 'actions@github.com'
             git add values.yaml
         - name: Update OCR service values.yaml
+          if: ${{ needs.changes.outputs.ocr-worker == 'true' || needs.changes.outputs.ocr-watcher == 'true'}}
           run: |
             cd OCR_Service/helm
             sed -i 's|APP_VERSION:.*|APP_VERSION: '${{ github.sha }}'|' values.yaml 
@@ -173,6 +214,7 @@ jobs:
             git config --global user.email 'actions@github.com'
             git add values.yaml
         - name: Update Notification service values.yaml
+          if:  ${{ needs.changes.outputs.notification == 'true' }}
           run: |
             cd Notification_Service/helm
             sed -i 's|APP_VERSION:.*|APP_VERSION: '${{ github.sha }}'|' values.yaml 
@@ -186,6 +228,8 @@ jobs:
         
 
     lint-notification:
+        needs: changes
+        if: ${{ needs.changes.outputs.notification == 'true' }}
         runs-on: ubuntu-latest
         steps:
         - name: Checkout code
@@ -196,6 +240,8 @@ jobs:
             working-directory: Notification_Service
 
     test-notification:
+        needs: changes
+        if: ${{ needs.changes.outputs.notification == 'true' }}
         runs-on: ubuntu-latest
         steps:
         - name: Checkout code
@@ -207,7 +253,8 @@ jobs:
 
     build-notification:
         runs-on: ubuntu-latest
-        needs: [lint-notification, test-notification]
+        needs: [lint-notification, test-notification, changes]
+        if: ${{ needs.changes.outputs.notification == 'true' }}
         steps:
         - name: Checkout code
           uses: actions/checkout@v2
@@ -221,18 +268,10 @@ jobs:
         - name: Set up Docker Buildx
           uses: docker/setup-buildx-action@v2
 
-        - name: Build and push watcher Docker image
+        - name: Build and push notification Docker image
           uses: docker/build-push-action@v4
           with:
-            context: ./Webservice
-            push: true
-            platforms: linux/arm64
-            tags: ${{ env.DOCKERHUB_USERNAME }}/${{ env.NOTIFICATION_IMAGE_NAME }}:${{ github.sha }}
-        
-        - name: Build and push worker Docker image
-          uses: docker/build-push-action@v4
-          with:
-            context: ./Webservice
+            context: ./Notification_Service
             push: true
             platforms: linux/arm64
             tags: ${{ env.DOCKERHUB_USERNAME }}/${{ env.NOTIFICATION_IMAGE_NAME }}:${{ github.sha }}
