@@ -74,9 +74,9 @@ func main() {
 	// Static HTTP handler to serve files from the static folder.
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
-	http.HandleFunc("/", endpoints.UIHandler)
-	http.HandleFunc("/process", endpoints.OcrRequestHandler)
-	http.HandleFunc("/healthz", endpoints.HealthzHandler)
+	http.HandleFunc("/", endpoints.NewUIHandler(logger))
+	http.HandleFunc("/process", endpoints.NewOCRRequestHandler(logger))
+	http.HandleFunc("/healthz", endpoints.NewHealthzHandler(logger))
 
 	//HTTP server starts in a goroutine to handle graceful shutdown
 	s := &http.Server{Addr: ":8080"}
