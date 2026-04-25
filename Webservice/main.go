@@ -1,9 +1,10 @@
 package main
 
 import (
-	"OCR/webservice/endpoints"
+	"OCR/webservice/packages/endpoints"
 	"context"
 	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -13,55 +14,62 @@ import (
 )
 
 var MinioAddr = "minio.minio.svc.cluster.local"
-var MinioPort = 9000
-var MinioBucket = "ocrbucket"
-var MinioUser = "admin"
-var MinioPassword = "admin"
+var MinioPort = "9000"
+var MinioBucket = "ocr_bucket"
+var MinioUser = "minioadmin"
+var MinioPassword = "minioadmin"
 
-func read_environment() {
-	//Read variables from environment variables
-	if os.Getenv("MINIO_BUCKET") != "" {
-		log.Printf("MINIO_BUCKET environment variable is set, using its value %v", os.Getenv("MINIO_BUCKET"))
-		MinioBucket = os.Getenv("MINIO_BUCKET")
-	} else {
-		log.Printf("MINIO_BUCKET environment variable is not set, using default value %v", MinioBucket)
-	}
-
-	if os.Getenv("MINIO_ADDR") != "" {
-		log.Printf("MINIO_ADDR environment variable is set, using its value %v", os.Getenv("MINIO_ADDR"))
-		MinioAddr = os.Getenv("MINIO_ADDR")
-	} else {
-		log.Printf("MINIO_ADDR environment variable is not set, using default value %v", MinioAddr)
-	}
-
-	if os.Getenv("MINIO_USER") != "" {
-		log.Printf("MINIO_USER environment variable is set, using its value %v", os.Getenv("MINIO_USER"))
-		MinioUser = os.Getenv("MINIO_USER")
-	} else {
-		log.Printf("MINIO_USER environment variable is not set, using default value %v", MinioUser)
-	}
-
-	if os.Getenv("MINIO_PASSWORD") != "" {
-		log.Printf("MINIO_PASSWORD environment variable is set, using its value %v", os.Getenv("MINIO_PASSWORD"))
-		MinioPassword = os.Getenv("MINIO_PASSWORD")
-	} else {
-		log.Printf("MINIO_PASSWORD environment variable is not set, using default value %v", MinioPassword)
-	}
-}
-
-func startServer(s *http.Server) {
-	log.Println("Server listening on http://:8080")
+func startServer(s *http.Server, logger *slog.Logger) {
+	logger.Info("Server listening on http://:8080")
 	err := s.ListenAndServe()
 	// http.ErrServerClosed should not be logged to the user
 	if err != nil && err != http.ErrServerClosed {
-		log.Fatalf("HTTP server error %v", err)
+		log.Fatal("HTTP server error", "error", err)
+	}
+}
+
+func read_environment(logger *slog.Logger) {
+	//Read variables from environment variables
+	if os.Getenv("MINIO_BUCKET") != "" {
+		logger.Info("MINIO_BUCKET environment variable is set, using that", "value", os.Getenv("MINIO_BUCKET"))
+		MinioBucket = os.Getenv("MINIO_BUCKET")
+	} else {
+		logger.Info("MINIO_BUCKET environment variable is not set, using default", "value", MinioBucket)
+	}
+
+	if os.Getenv("MINIO_ADDR") != "" {
+		logger.Info("MINIO_ADDR environment variable is set, using that", "value", os.Getenv("MINIO_ADDR"))
+		MinioAddr = os.Getenv("MINIO_ADDR")
+	} else {
+		logger.Info("MINIO_ADDR environment variable is not set, using default", "value", MinioAddr)
+	}
+
+	if os.Getenv("MINIO_USER") != "" {
+		logger.Info("MINIO_USER environment variable is set, using that", "value", os.Getenv("MINIO_USER"))
+		MinioUser = os.Getenv("MINIO_USER")
+	} else {
+		logger.Info("MINIO_USER environment variable is not set, using default", "value", MinioUser)
+	}
+
+	if os.Getenv("MINIO_PASSWORD") != "" {
+		logger.Info("MINIO_PASSWORD environment variable is set, using that", "value", os.Getenv("MINIO_PASSWORD"))
+		MinioPassword = os.Getenv("MINIO_PASSWORD")
+	} else {
+		logger.Info("MINIO_PASSWORD environment variable is not set, using default", "value", MinioPassword)
+	}
+	if os.Getenv("MINIO_PORT") != "" {
+		logger.Info("MINIO_PORT environment variable is set, using that", "value", os.Getenv("MINIO_PORT"))
+		MinioPort = os.Getenv("MINIO_PORT")
+	} else {
+		logger.Info("MINIO_PORT environment variable is not set, using default", "value", MinioPort)
 	}
 }
 
 func main() {
 	// Set the default logger to a fancier log format.
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
-	read_environment()
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+
+	read_environment(logger)
 
 	// Static HTTP handler to serve files from the static folder.
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
@@ -73,19 +81,19 @@ func main() {
 	//HTTP server starts in a goroutine to handle graceful shutdown
 	s := &http.Server{Addr: ":8080"}
 	// Start the server in the goroutine
-	go startServer(s)
+	go startServer(s, logger)
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 	<-sigChan
 
-	log.Println("Shutdown signal received")
+	logger.Info("Shutdown signal received")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
 	defer cancel()
 	err := s.Shutdown(ctx)
 	if err != nil {
-		log.Printf("Graceful server shutdown failed with error %v", err)
+		logger.Info("Graceful server shutdown failed with", "error", err)
 	} else {
-		log.Println("Graceful server sutdown succeeded")
+		logger.Info("Graceful server sutdown succeeded")
 	}
 
 }

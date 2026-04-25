@@ -1,7 +1,7 @@
 package main
 
 import (
-	"OCR/webservice/endpoints"
+	"OCR/webservice/packages/endpoints"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"

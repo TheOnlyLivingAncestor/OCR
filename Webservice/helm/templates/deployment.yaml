@@ -15,27 +15,27 @@ spec:
         - name: ocr-webservice
           image: vitezalexandra/ocr-webservice:{{ .Values.env.APP_VERSION }}
           env:
-            - name: MinioAddr
+            - name: MINIO_ADDR
               valueFrom:
                 congigMapKeyRef:
                   name: minio-configmap
                   key: minio_service_name
-            - name: MinioPort
+            - name: MINIO_PORT
               valueFrom:
                 congigMapKeyRef:
                   name: minio-configmap
                   key: minio_service_port
-            - name: MinioBucket
+            - name: MINIO_BUCKET
               valueFrom:
                 congigMapKeyRef:
                   name: minio-configmap
                   key: minio_bucket_name
-            - name: MinioUser
+            - name: MINIO_USER
               valueFrom:
                 secretKeyRef:
                   name: minio-credentials
-                  key: username:
-            - name: MinioPassword
+                  key: username
+            - name: MINIO_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: minio-configmap
