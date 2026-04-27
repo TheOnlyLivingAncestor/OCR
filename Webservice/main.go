@@ -148,6 +148,9 @@ func main() {
 		},
 		nil,
 	)
+	if err != nil {
+		logger.Error("Publisher creation failed", "error", err)
+	}
 
 	message := rmq.NewMessage([]byte("Helloo"))
 	_, err = publisher.Publish(context.Background(), message)
@@ -156,6 +159,8 @@ func main() {
 	}
 
 	logger.Info("Message publishing succeeded")
+
+	publisher.Close(context.Background())
 
 	// Static HTTP handler to serve files from the static folder.
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
