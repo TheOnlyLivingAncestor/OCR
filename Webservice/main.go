@@ -135,7 +135,10 @@ func main() {
 	}
 	logger.Info("Connecting to RabbitMQ succeeded")
 
-	connection.Close(context.Background())
+	err = connection.Close(context.Background())
+	if err != nil {
+		logger.Error("Failed to close connection", "error", err)
+	}
 
 	// Static HTTP handler to serve files from the static folder.
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
