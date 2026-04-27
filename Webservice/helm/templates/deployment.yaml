@@ -40,27 +40,27 @@ spec:
                 secretKeyRef:
                   name: minio-credentials
                   key: password
-            - name: RABBITMQ_ADDR
+            - name: RABBIT_ADDR
               valueFrom:
                 configMapKeyRef:
                   name: rabbitmq-configmap
                   key: rabbitmq_service_name
-            - name: RABBITMQ_PORT
+            - name: RABBIT_PORT
               valueFrom:
                 configMapKeyRef:
                   name: rabbitmq-configmap
                   key: rabbitmq_service_port
-            - name: RABBITMQ_QUEUE
+            - name: RABBIT_QUEUE
               valueFrom:
                 configMapKeyRef:
                   name: rabbitmq-configmap
                   key: rabbitmq_queue_name
-            - name: RABBITQM_USER
+            - name: RABBIT_USER
               valueFrom:
                 secretKeyRef:
                   name: rabbitmq-credentials
                   key: username
-            - name: RABBITMQ_PASSWORD
+            - name: RABBIT_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: rabbitmq-credentials
