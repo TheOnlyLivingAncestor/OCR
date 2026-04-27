@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/minio/minio-go/v7/pkg/credentials"
+	rmq "github.com/rabbitmq/rabbitmq-amqp-go-client/pkg/rabbitmqamqp"
 )
 
 var MinioAddr = "minio.minio.svc.cluster.local"
@@ -126,6 +127,15 @@ func main() {
 		logger.Error("Failed to ensure storage bucket, exiting", "error", err)
 		os.Exit(1)
 	}
+
+	rabbitmq_env := rmq.NewEnvironment("amqp://"+RabbitUser+":"+RabbitPassword+"@"+RabbitAddr+":"+RabbitPort+"/", nil)
+	connection, err := rabbitmq_env.NewConnection(context.Background())
+	if err != nil {
+		logger.Error("Connecting to RabbitMQ failed", "error", err)
+	}
+	logger.Info("Connecting to RabbitMQ succeeded")
+
+	connection.Close(context.Background())
 
 	// Static HTTP handler to serve files from the static folder.
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
