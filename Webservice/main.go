@@ -160,7 +160,11 @@ func main() {
 
 	logger.Info("Message publishing succeeded")
 
-	publisher.Close(context.Background())
+	defer func() {
+		if err := publisher.Close(context.Background()); err != nil {
+			logger.Error("Error occurred while closing publisher", "error", err)
+		}
+	}()
 
 	// Static HTTP handler to serve files from the static folder.
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
