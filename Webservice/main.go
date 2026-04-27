@@ -135,10 +135,27 @@ func main() {
 	}
 	logger.Info("Connecting to RabbitMQ succeeded")
 
-	err = connection.Close(context.Background())
+	defer func() {
+		if err := connection.Close(context.Background()); err != nil {
+			logger.Error("Failed to close RabbitMQ connection", "error", err)
+		}
+	}()
+
+	publisher, err := connection.NewPublisher(context.Background(),
+		&rmq.ExchangeAddress{
+			Exchange: "",
+			Key:      RabbitQueue,
+		},
+		nil,
+	)
+
+	message := rmq.NewMessage([]byte("Helloo"))
+	_, err = publisher.Publish(context.Background(), message)
 	if err != nil {
-		logger.Error("Failed to close connection", "error", err)
+		logger.Error("There was an error during message publishing", "error", err)
 	}
+
+	logger.Info("Message publishing succeeded")
 
 	// Static HTTP handler to serve files from the static folder.
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
