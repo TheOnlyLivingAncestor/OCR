@@ -78,34 +78,34 @@ func read_rabbit_environment(logger *slog.Logger) {
 	//Read minio variables from environment variables
 	if os.Getenv("RABBIT_QUEUE") != "" {
 		logger.Info("RABBIT_QUEUE environment variable is set, using that", "value", os.Getenv("RABBIT_QUEUE"))
-		MinioBucket = os.Getenv("RABBIT_QUEUE")
+		RabbitQueue = os.Getenv("RABBIT_QUEUE")
 	} else {
 		logger.Info("RABBIT_QUEUE environment variable is not set, using default", "value", RabbitQueue)
 	}
 
 	if os.Getenv("RABBIT_ADDR") != "" {
 		logger.Info("RABBIT_ADDR environment variable is set, using that", "value", os.Getenv("RABBIT_ADDR"))
-		MinioAddr = os.Getenv("RABBIT_ADDR")
+		RabbitAddr = os.Getenv("RABBIT_ADDR")
 	} else {
 		logger.Info("RABBIT_ADDR environment variable is not set, using default", "value", RabbitAddr)
 	}
 
 	if os.Getenv("RABBIT_USER") != "" {
 		logger.Info("RABBIT_USER environment variable is set, using that", "value", os.Getenv("RABBIT_USER"))
-		MinioUser = os.Getenv("RABBIT_USER")
+		RabbitUser = os.Getenv("RABBIT_USER")
 	} else {
 		logger.Info("RABBIT_USER environment variable is not set, using default", "value", RabbitUser)
 	}
 
 	if os.Getenv("RABBIT_PASSWORD") != "" {
 		logger.Info("RABBIT_PASSWORD environment variable is set, using that", "value", os.Getenv("RABBIT_PASSWORD"))
-		MinioPassword = os.Getenv("RABBIT_PASSWORD")
+		RabbitPassword = os.Getenv("RABBIT_PASSWORD")
 	} else {
 		logger.Info("RABBIT_PASSWORD environment variable is not set, using default", "value", RabbitPassword)
 	}
 	if os.Getenv("RABBIT_PORT") != "" {
 		logger.Info("RABBIT_PORT environment variable is set, using that", "value", os.Getenv("RABBIT_PORT"))
-		MinioPort = os.Getenv("RABBIT_PORT")
+		RabbitPort = os.Getenv("RABBIT_PORT")
 	} else {
 		logger.Info("RABBIT_PORT environment variable is not set, using default", "value", RabbitPort)
 	}
