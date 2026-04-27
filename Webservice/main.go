@@ -17,9 +17,15 @@ import (
 
 var MinioAddr = "minio.minio.svc.cluster.local"
 var MinioPort = "9000"
-var MinioBucket = "ocr_bucket"
+var MinioBucket = "ocr-bucket"
 var MinioUser = "minioadmin"
 var MinioPassword = "minioadmin"
+
+var RabbitAddr = "hello-world.rabbitmq-cluster.svc.cluster.local"
+var RabbitPort = "5672"
+var RabbitQueue = "recognition-request"
+var RabbitUser = "guest"
+var RabbitPassword = "guest"
 
 func startServer(s *http.Server, logger *slog.Logger) {
 	logger.Info("Server listening on http://:8080")
@@ -30,8 +36,8 @@ func startServer(s *http.Server, logger *slog.Logger) {
 	}
 }
 
-func read_environment(logger *slog.Logger) {
-	//Read variables from environment variables
+func read_minio_environment(logger *slog.Logger) {
+	//Read minio variables from environment variables
 	if os.Getenv("MINIO_BUCKET") != "" {
 		logger.Info("MINIO_BUCKET environment variable is set, using that", "value", os.Getenv("MINIO_BUCKET"))
 		MinioBucket = os.Getenv("MINIO_BUCKET")
@@ -67,11 +73,49 @@ func read_environment(logger *slog.Logger) {
 	}
 }
 
+func read_rabbit_environment(logger *slog.Logger) {
+	//Read minio variables from environment variables
+	if os.Getenv("RABBIT_QUEUE") != "" {
+		logger.Info("RABBIT_QUEUE environment variable is set, using that", "value", os.Getenv("RABBIT_QUEUE"))
+		MinioBucket = os.Getenv("RABBIT_QUEUE")
+	} else {
+		logger.Info("RABBIT_QUEUE environment variable is not set, using default", "value", RabbitQueue)
+	}
+
+	if os.Getenv("RABBIT_ADDR") != "" {
+		logger.Info("RABBIT_ADDR environment variable is set, using that", "value", os.Getenv("RABBIT_ADDR"))
+		MinioAddr = os.Getenv("RABBIT_ADDR")
+	} else {
+		logger.Info("RABBIT_ADDR environment variable is not set, using default", "value", RabbitAddr)
+	}
+
+	if os.Getenv("RABBIT_USER") != "" {
+		logger.Info("RABBIT_USER environment variable is set, using that", "value", os.Getenv("RABBIT_USER"))
+		MinioUser = os.Getenv("RABBIT_USER")
+	} else {
+		logger.Info("RABBIT_USER environment variable is not set, using default", "value", RabbitUser)
+	}
+
+	if os.Getenv("RABBIT_PASSWORD") != "" {
+		logger.Info("RABBIT_PASSWORD environment variable is set, using that", "value", os.Getenv("RABBIT_PASSWORD"))
+		MinioPassword = os.Getenv("RABBIT_PASSWORD")
+	} else {
+		logger.Info("RABBIT_PASSWORD environment variable is not set, using default", "value", RabbitPassword)
+	}
+	if os.Getenv("RABBIT_PORT") != "" {
+		logger.Info("RABBIT_PORT environment variable is set, using that", "value", os.Getenv("RABBIT_PORT"))
+		MinioPort = os.Getenv("RABBIT_PORT")
+	} else {
+		logger.Info("RABBIT_PORT environment variable is not set, using default", "value", RabbitPort)
+	}
+}
+
 func main() {
 	// Set the default logger to a fancier log format.
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
-	read_environment(logger)
+	read_minio_environment(logger)
+	read_rabbit_environment(logger)
 
 	//init MinIO storage
 	cred := credentials.NewStaticV4(MinioUser, MinioPassword, "")

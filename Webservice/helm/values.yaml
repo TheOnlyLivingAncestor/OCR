@@ -9,3 +9,9 @@ minio:
   bucket_name: ocr-bucket
   username: JzcIs0mOTKUDvWKJ1Dp3
   password: 0Y5GmgKrTs9MYSctrmsPdzFsKMZMpUwT04oCZLIu
+rabbitmq:
+  service_name: hello-world.rabbitmq-cluster.svc.cluster.local
+  service_port: 5672
+  queue_name: recognition-request
+  username: default_user_waFUPHY_m019tVF5FlC
+  password: J5RSzqB3jpZzIFtuFhenV7Nabw3Sb3g6
