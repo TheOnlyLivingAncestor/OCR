@@ -81,7 +81,7 @@ func (storage *MinioStorage) Get_Download_URL(ctx context.Context, filename stri
 		storage.logger.Error("Error happened while getting presigned url for download", "error", err, "filename", filename)
 		return "", err
 	}
-	return url.EscapedPath(), nil
+	return url.String(), nil
 }
 
 func (storage *MinioStorage) Get_Upload_URL(ctx context.Context, filename string) (string, error) {
@@ -90,5 +90,5 @@ func (storage *MinioStorage) Get_Upload_URL(ctx context.Context, filename string
 		storage.logger.Error("Error while getting presigned url for upload", "error", err)
 		return "", err
 	}
-	return url.EscapedPath(), nil
+	return url.String(), nil
 }
