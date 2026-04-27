@@ -1,7 +1,7 @@
 #egyenlőre az image tagolása a lényeg -> a helm chart további részét majd kitöltjük a fejlesztéskor
 env:
   #APP_VERSION egy string, amely a docker image tag-et fogja tartalmazni. A commit sha-t fogjuk erre használni.
-  APP_VERSION: bc677d65edec73be47a631f790e50bcc94207049
+  APP_VERSION: 58c708dc6046827ec0195565a95c4e8b35166836
 #Minden, amit a webservice felhasznál a minio eléréséhez, itt van definiálva
 minio:
   service_name: minio.minio.svc.cluster.local
