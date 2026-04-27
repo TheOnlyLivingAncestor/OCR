@@ -42,7 +42,7 @@ func NewOCRRequestHandler(logger *slog.Logger, minio_client *storage.MinioStorag
 		metadata := make(map[string]string)
 		metadata["description"] = description
 		metadata["jobID"] = id
-		minio_client.Upload(r.Context(),
+		err = minio_client.Upload(r.Context(),
 			storage.UploadRequest{
 				File:        image,
 				Size:        handler.Size,
@@ -51,6 +51,9 @@ func NewOCRRequestHandler(logger *slog.Logger, minio_client *storage.MinioStorag
 				Metadata:    metadata,
 			},
 		)
+		if err != nil {
+			logger.Error("Error occurred during image upload", "error", err)
+		}
 	}
 }
 
