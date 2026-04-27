@@ -142,9 +142,8 @@ func main() {
 	}()
 
 	publisher, err := connection.NewPublisher(context.Background(),
-		&rmq.ExchangeAddress{
-			Exchange: "",
-			Key:      RabbitQueue,
+		&rmq.QueueAddress{
+			Queue: RabbitQueue,
 		},
 		nil,
 	)
