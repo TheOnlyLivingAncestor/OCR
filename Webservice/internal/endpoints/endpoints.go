@@ -1,6 +1,7 @@
 package endpoints
 
 import (
+	"OCR/webservice/internal/queue"
 	"OCR/webservice/internal/storage"
 	"encoding/json"
 	"log/slog"
@@ -8,9 +9,10 @@ import (
 	"path/filepath"
 
 	"github.com/google/uuid"
+	rmq "github.com/rabbitmq/rabbitmq-amqp-go-client/pkg/rabbitmqamqp"
 )
 
-func NewOCRRequestHandler(logger *slog.Logger, minio_client *storage.MinioStorage) http.HandlerFunc {
+func NewOCRRequestHandler(logger *slog.Logger, minio_client *storage.MinioStorage, rabbitmq *queue.RabbitQueue) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			w.WriteHeader(http.StatusMethodNotAllowed)
@@ -38,7 +40,8 @@ func NewOCRRequestHandler(logger *slog.Logger, minio_client *storage.MinioStorag
 		logger.Info("Description of image read successfully", "text", description)
 		//Upload image to object storage
 		id := uuid.New().String()
-		filename := id + filepath.Ext(handler.Filename)
+		base_filename := id + filepath.Ext(handler.Filename)
+		upload_filename := id + "_processed" + filepath.Ext(handler.Filename)
 		metadata := make(map[string]string)
 		metadata["description"] = description
 		metadata["jobID"] = id
@@ -46,13 +49,47 @@ func NewOCRRequestHandler(logger *slog.Logger, minio_client *storage.MinioStorag
 			storage.UploadRequest{
 				File:        image,
 				Size:        handler.Size,
-				FileName:    filename,
+				FileName:    base_filename,
 				ContentType: handler.Header.Get("Content-Type"),
 				Metadata:    metadata,
 			},
 		)
 		if err != nil {
 			logger.Error("Error occurred during image upload", "error", err)
+			w.WriteHeader(http.StatusFailedDependency)
+		}
+
+		//Get the required links from MinIO
+		download_link, err := minio_client.Get_Download_URL(r.Context(), base_filename)
+		if err != nil {
+			logger.Error("Failed to get MinIO download link", "error", err)
+			w.WriteHeader(http.StatusFailedDependency)
+		}
+
+		upload_link, err := minio_client.Get_Upload_URL(r.Context(), upload_filename)
+		if err != nil {
+			logger.Error("Failed to get MinIO upload link", "error", err)
+			w.WriteHeader(http.StatusFailedDependency)
+		}
+
+		//Send message to RabbitMQ queue
+		data, err := json.Marshal(queue.Message{
+			Download_link: download_link,
+			Upload_link:   upload_link,
+			JobID:         id,
+		})
+		if err != nil {
+			logger.Error("Failed to Marshal RabbitMQ message", "error", err)
+		}
+		publish_result, err := rabbitmq.PublishImageReady(data)
+		if err != nil {
+			logger.Error("Failed to publish message", "error", err)
+		}
+		switch publish_result.Outcome.(type) {
+		case *rmq.StateAccepted:
+			logger.Info("The ocr-request message was accepted by RabbitMQ.")
+		default:
+			logger.Info("Something happened during sending the ocr-request.")
 		}
 	}
 }

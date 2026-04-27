@@ -2,6 +2,7 @@ package main
 
 import (
 	"OCR/webservice/internal/endpoints"
+	"OCR/webservice/internal/queue"
 	"OCR/webservice/internal/storage"
 	"context"
 	"log"
@@ -148,16 +149,11 @@ func main() {
 		nil,
 	)
 	if err != nil {
-		logger.Error("Publisher creation failed", "error", err)
+		logger.Error("RabbitMQ publisher creation failed, exiting", "error", err)
+		os.Exit(1)
 	}
 
-	message := rmq.NewMessage([]byte("Helloo"))
-	_, err = publisher.Publish(context.Background(), message)
-	if err != nil {
-		logger.Error("There was an error during message publishing", "error", err)
-	}
-
-	logger.Info("Message publishing succeeded")
+	rmq_queue := queue.NewRabbitQueue(publisher, logger)
 
 	defer func() {
 		if err := publisher.Close(context.Background()); err != nil {
@@ -169,7 +165,7 @@ func main() {
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
 	http.HandleFunc("/", endpoints.NewUIHandler(logger))
-	http.HandleFunc("/process", endpoints.NewOCRRequestHandler(logger, minio_storage))
+	http.HandleFunc("/process", endpoints.NewOCRRequestHandler(logger, minio_storage, rmq_queue))
 	http.HandleFunc("/healthz", endpoints.NewHealthzHandler(logger))
 
 	//HTTP server starts in a goroutine to handle graceful shutdown

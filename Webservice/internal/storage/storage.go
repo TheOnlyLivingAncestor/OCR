@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"log/slog"
+	"time"
 
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
@@ -71,4 +72,23 @@ func (storage *MinioStorage) Upload(ctx context.Context, request UploadRequest) 
 		return err
 	}
 	return nil
+}
+
+func (storage *MinioStorage) Get_Download_URL(ctx context.Context, filename string) (string, error) {
+	//Get a Presigned Get URL for the object with filename
+	url, err := storage.client.PresignedGetObject(ctx, storage.bucket, filename, 60*time.Minute, nil)
+	if err != nil {
+		storage.logger.Error("Error happened while getting presigned url for download", "error", err, "filename", filename)
+		return "", err
+	}
+	return url.EscapedPath(), nil
+}
+
+func (storage *MinioStorage) Get_Upload_URL(ctx context.Context, filename string) (string, error) {
+	url, err := storage.client.PresignedPutObject(ctx, storage.bucket, filename, 60*time.Minute)
+	if err != nil {
+		storage.logger.Error("Error while getting presigned url for upload", "error", err)
+		return "", err
+	}
+	return url.EscapedPath(), nil
 }
