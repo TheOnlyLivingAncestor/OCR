@@ -12,7 +12,7 @@ import (
 	rmq "github.com/rabbitmq/rabbitmq-amqp-go-client/pkg/rabbitmqamqp"
 )
 
-func NewOCRRequestHandler(logger *slog.Logger, minio_client *storage.MinioStorage, rabbitmq *queue.RabbitQueue) http.HandlerFunc {
+func NewOCRRequestHandler(logger *slog.Logger, minio_client storage.Storage, rabbitmq queue.Queue) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			w.WriteHeader(http.StatusMethodNotAllowed)

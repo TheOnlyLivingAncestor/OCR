@@ -8,7 +8,7 @@ import (
 )
 
 type Queue interface {
-	PublishImageReady([]byte) (rmq.PublishResult, error)
+	PublishImageReady([]byte) (*rmq.PublishResult, error)
 }
 
 type Message struct {

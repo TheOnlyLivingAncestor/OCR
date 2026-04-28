@@ -11,7 +11,9 @@ import (
 )
 
 type Storage interface {
-	Upload(ctx context.Context, data []byte, description string) error
+	Upload(ctx context.Context, upload_request UploadRequest) error
+	Get_Download_URL(ctx context.Context, filename string) (string, error)
+	Get_Upload_URL(ctx context.Context, filename string) (string, error)
 }
 
 type UploadRequest struct {
