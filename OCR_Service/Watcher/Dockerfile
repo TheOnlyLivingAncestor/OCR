@@ -24,7 +24,7 @@ RUN CGO_ENABLED=0 GOOS=linux  go build -a -o ocr_watcher
 FROM scratch
 
 # Copy the binary from the host.
-COPY --from=build /ocr_watcher .
+COPY --from=build /app/OCR_Service/Watcher/ocr_watcher .
 
 # Tell Docker to execute this command on a `docker run`.
 ENTRYPOINT ["/ocr_watcher"]
