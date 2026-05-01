@@ -1,0 +1,10 @@
+#RabbitMQ elérés és queue név
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rabbitmq-configmap
+data:
+  rabbitmq_service_name: "{{ .Values.rabbitmq.service_name}}"
+  rabbitmq_service_port: "{{ .Values.rabbitmq.service_port}}"
+  rabbitmq_consumer_queue_name: "{{ .Values.rabbitmq.consumer_queue}}"
+  rabbitmq_publisher_queue_name: "{{ .Values.rabbitmq.publisher_queue}}"

@@ -1,0 +1,7 @@
+go 1.24.0
+
+use (
+	.
+	./OCR_Service/Watcher
+	./Packages/Queue
+)

@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ocr-watcher
+spec:
+  selector:
+    matchLabels:
+      app: ocr-watcher
+  template:
+    metadata:
+      labels:
+        app: ocr-watcher
+    spec:
+      containers:
+        - name: ocr-watcher
+          image: vitezalexandra/ocr-watcher:{{ .Values.env.APP_VERSION }}
+          env:
+            - name: RABBIT_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  name: rabbitmq-configmap
+                  key: rabbitmq_service_name
+            - name: RABBIT_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: rabbitmq-configmap
+                  key: rabbitmq_service_port
+            - name: RABBIT_CONSUMER_QUEUE
+              valueFrom:
+                configMapKeyRef:
+                  name: rabbitmq-configmap
+                  key: rabbitmq_consumer_queue_name
+            - name: RABBIT_PUBLISHER_QUEUE
+              valueFrom:
+                configMapKeyRef:
+                  name: rabbitmq-configmap
+                  key: rabbitmq_publisher_queue_name
+            - name: RABBIT_USER
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-credentials
+                  key: username
+            - name: RABBIT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-credentials
+                  key: password
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - "test -f /tmp/heartbeat && test $(find /tmp/heartbeat -mmin -1)"
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - "test -f /tmp/heartbeat && test $(find /tmp/heartbeat -mmin -1)"
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
