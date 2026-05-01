@@ -10,6 +10,8 @@ COPY Packages/Queue /
 # Set the working directory to the same place we copied the code
 WORKDIR /
 
+ENV GOWORK=off
+
 RUN go mod download
 
 # Build the binary!
