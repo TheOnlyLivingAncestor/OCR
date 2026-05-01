@@ -161,7 +161,8 @@ jobs:
         - name: Build and push watcher Docker image
           uses: docker/build-push-action@v4
           with:
-            context: ./OCR_Service/Watcher
+            context: .
+            file: ./OCR_Service/Watcher/Dockerfile
             push: true
             platforms: linux/arm64
             tags: ${{ env.DOCKERHUB_USERNAME }}/${{ env.OCR_WATCHER_IMAGE_NAME }}:${{ github.sha }}
