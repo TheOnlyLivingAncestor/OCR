@@ -17,7 +17,7 @@ RUN go mod download
 # Build the binary!
 RUN CGO_ENABLED=0 GOOS=linux go build -a -o ocr_watcher
 
-RUN chmod +x app
+RUN chmod +x ocr_watcher
 
 ############################################
 # Stage 2: Build the container image proper

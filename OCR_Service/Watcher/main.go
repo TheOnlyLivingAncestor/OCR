@@ -117,7 +117,7 @@ worker_loop:
 				logger.Error("Failed to unmarshal message", "error", err)
 				//Itt vissza kéne am utasítani az üzenetet?
 			}
-			logger.Info("Unmarshaled message from RabbitMQ is the following message", "msg", msg_json)
+			logger.Info("Unmarshaled message from RabbitMQ is the following beautiful message", "msg", msg_json)
 		}
 	}
 
