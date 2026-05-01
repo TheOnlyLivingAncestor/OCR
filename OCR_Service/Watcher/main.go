@@ -113,7 +113,10 @@ worker_loop:
 			}
 			logger.Info("Received message", "data", msg)
 			var msg_json queue.RmqMessage
-			json.Unmarshal(msg, &msg_json)
+			if err = json.Unmarshal(msg, &msg_json); err != nil {
+				logger.Error("Failed to unmarshal message", "error", err)
+				//Itt vissza kéne am utasítani az üzenetet?
+			}
 			logger.Info("Unmarshaled message", "msg", msg_json)
 		}
 	}
