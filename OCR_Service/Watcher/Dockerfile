@@ -17,6 +17,8 @@ RUN go mod download
 # Build the binary!
 RUN CGO_ENABLED=0 GOOS=linux go build -a -o ocr_watcher
 
+RUN chmod +x app
+
 ############################################
 # Stage 2: Build the container image proper
 ############################################
@@ -26,4 +28,4 @@ FROM scratch
 COPY --from=build /ocr_watcher .
 
 # Tell Docker to execute this command on a `docker run`.
-CMD ["/ocr_watcher"]
+ENTRYPOINT ["/ocr_watcher"]
