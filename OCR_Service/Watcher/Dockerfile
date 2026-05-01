@@ -3,21 +3,20 @@
 ############################################
 FROM docker.io/golang:latest as build
 
+WORKDIR /app
+
 # Copy the source files from the host
-COPY . /
-COPY Packages/Queue /
+COPY . .
 
 # Set the working directory to the same place we copied the code
-WORKDIR /
+WORKDIR /app/OCR_Service/Watcher
 
 ENV GOWORK=off
 
 RUN go mod download
 
 # Build the binary!
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -a -o ocr_watcher
-
-RUN chmod +x ocr_watcher
+RUN CGO_ENABLED=0 GOOS=linux  go build -a -o ocr_watcher
 
 ############################################
 # Stage 2: Build the container image proper
