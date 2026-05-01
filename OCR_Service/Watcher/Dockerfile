@@ -5,9 +5,12 @@ FROM docker.io/golang:latest as build
 
 # Copy the source files from the host
 COPY . /
+COPY Packages/Queue /
 
 # Set the working directory to the same place we copied the code
 WORKDIR /
+
+RUN go mod download
 
 # Build the binary!
 RUN CGO_ENABLED=0 GOOS=linux go build -a -o ocr_watcher
