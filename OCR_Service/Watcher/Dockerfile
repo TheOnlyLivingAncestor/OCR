@@ -15,7 +15,7 @@ ENV GOWORK=off
 RUN go mod download
 
 # Build the binary!
-RUN CGO_ENABLED=0 GOOS=linux go build -a -o ocr_watcher
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -a -o ocr_watcher
 
 RUN chmod +x ocr_watcher
 
