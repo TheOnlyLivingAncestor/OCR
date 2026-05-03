@@ -23,9 +23,9 @@ func read_rabbit_environment() {
 	//Read minio variables from environment variables
 	if os.Getenv("RABBIT_CONSUMER_QUEUE") != "" {
 		logger.Info("RABBIT_QUEUE environment variable is set, using that", "value", os.Getenv("RABBIT_CONSUMER_QUEUE"))
-		RabbitConsumerQueue = os.Getenv("RABBIT_QUEUE")
+		RabbitConsumerQueue = os.Getenv("RABBIT_CONSUMER_QUEUE")
 	} else {
-		logger.Info("RABBIT_QUEUE environment variable is not set, using default", "value", RabbitConsumerQueue)
+		logger.Info("RABBIT_CONSUMER_QUEUE environment variable is not set, using default", "value", RabbitConsumerQueue)
 	}
 
 	if os.Getenv("RABBIT_ADDR") != "" {
