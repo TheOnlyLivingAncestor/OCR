@@ -14,7 +14,12 @@ func StartHeartbeat(ctx context.Context, cancel context.CancelFunc) {
 	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
 
-	f, err := os.OpenFile(heartbeatFile, os.O_CREATE, 0644)
+	err := os.MkdirAll("/tmp", 0755)
+	if err != nil {
+		logger.Error("Failed to create /tmp folder, exiting", "error", err)
+		os.Exit(1)
+	}
+	f, err := os.OpenFile(heartbeatFile, os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		logger.Error("Could not create or open heartbeat file, exiting", "error", err)
 		os.Exit(1)
