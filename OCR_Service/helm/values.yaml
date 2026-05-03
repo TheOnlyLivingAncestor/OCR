@@ -1,7 +1,7 @@
 # Egyenlőre csak az image build a fontos -> a részletek és a helm chart további elemei majd implementációkor
 env:
   #A két image egyszerre készül -> elég egy APP_VERSION (ha mégis kell több, akkor majd átírjuk)
-  APP_VERSION: 55afe4f4b233ec3e8eff4a4b8a557d853f03e04b
+  APP_VERSION: 04895853db1a73b51c1534c02a3e860c77b2eba3
 rabbitmq:
   username: default_user_waFUPHY_m019tVF5FlC 
   password: J5RSzqB3jpZzIFtuFhenV7Nabw3Sb3g6
