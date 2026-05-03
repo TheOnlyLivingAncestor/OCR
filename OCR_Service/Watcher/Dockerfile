@@ -21,7 +21,7 @@ RUN CGO_ENABLED=0 GOOS=linux  go build -a -o ocr_watcher
 ############################################
 # Stage 2: Build the container image proper
 ############################################
-FROM scratch
+FROM alpine:3.20
 
 # Copy the binary from the host.
 COPY --from=build /app/OCR_Service/Watcher/ocr_watcher .

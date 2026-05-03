@@ -50,7 +50,7 @@ spec:
               command:
                 - sh
                 - -c
-                - "test -f /tmp/heartbeat && test $(find /tmp/heartbeat -mmin -1)"
+                - "test -f /tmp/heartbeat && find /tmp/heartbeat -mmin -1 | grep -q ."
             initialDelaySeconds: 10
             periodSeconds: 10
             successThreshold: 1
@@ -60,7 +60,7 @@ spec:
               command:
                 - sh
                 - -c
-                - "test -f /tmp/heartbeat && test $(find /tmp/heartbeat -mmin -1)"
+                - "test -f /tmp/heartbeat && find /tmp/heartbeat -mmin -1 | grep -q ."
             initialDelaySeconds: 10
             periodSeconds: 10
             timeoutSeconds: 5
