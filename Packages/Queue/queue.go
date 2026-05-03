@@ -19,7 +19,7 @@ type Queue interface {
 	CloseConsumer() error
 	CreateAll(string, string) error
 	CloseAll() error
-	GetMessage() ([]byte, error)
+	GetMessage() (rmq.IDeliveryContext, error)
 }
 
 type RmqMessage struct {
@@ -138,11 +138,10 @@ func (q *RabbitMQ) CloseAll() error {
 	return nil
 }
 
-func (q *RabbitMQ) GetMessage() ([]byte, error) {
+func (q *RabbitMQ) GetMessage() (rmq.IDeliveryContext, error) {
 	deliveryctx, err := q.consumer.Receive(context.Background())
 	if err != nil {
 		logger.Error("Getting message from RabbitMQ failed", "error", err)
-		return nil, err
 	}
-	return deliveryctx.Message().GetData(), err
+	return deliveryctx, err
 }

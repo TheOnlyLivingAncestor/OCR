@@ -106,18 +106,24 @@ worker_loop:
 			logger.Info("Shutting down worker loop")
 			break worker_loop
 		default:
-			msg, err := rmq.GetMessage()
+			deliveryctx, err := rmq.GetMessage()
 			if err != nil {
 				logger.Error("Failed to receive message from RabbitMQ")
 				continue
 			}
+			msg := deliveryctx.Message().GetData()
 			logger.Info("Received message", "data", msg)
 			var msg_json queue.RmqMessage
 			if err = json.Unmarshal(msg, &msg_json); err != nil {
 				logger.Error("Failed to unmarshal message", "error", err)
-				//Itt vissza kéne am utasítani az üzenetet?
+				//Nem tudjuk processzálni az üzenetet -> nagy valséggel hibás, discard
+				deliveryctx.Discard(context.Background(), nil)
 			}
 			logger.Info("Unmarshaled message from RabbitMQ", "msg", msg_json)
+			//Meghívjuk a jobot a paraméterekkel
+
+			//A feldolgozást megkezdtük -> ACK
+			deliveryctx.Accept(context.Background())
 		}
 	}
 
