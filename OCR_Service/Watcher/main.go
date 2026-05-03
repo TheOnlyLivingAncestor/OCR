@@ -5,27 +5,41 @@ import (
 	"encoding/json"
 	"log/slog"
 	"ocr/ocr_service/watcher/internal/heartbeat"
+	jobrunner "ocr/ocr_service/watcher/internal/job-runner"
 	"ocr/packages/queue"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"k8s.io/client-go/rest"
 )
 
 var RabbitAddr = "hello-world.rabbitmq-cluster.svc.cluster.local"
 var RabbitPort = "5672"
 var RabbitConsumerQueue = "recognition-request"
+var RabbitPublisherQueue = "recognition-successful"
 var RabbitUser = "guest"
 var RabbitPassword = "guest"
+
+var WorkerImageName = "ocr-worker"
+var WorkerImageTag = "imageTag"
 
 var logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
 
 func read_rabbit_environment() {
-	//Read minio variables from environment variables
+	//Read rabbitmq variables from environment variables
 	if os.Getenv("RABBIT_CONSUMER_QUEUE") != "" {
-		logger.Info("RABBIT_QUEUE environment variable is set, using that", "value", os.Getenv("RABBIT_CONSUMER_QUEUE"))
+		logger.Info("RABBIT_CONSUMER_QUEUE environment variable is set, using that", "value", os.Getenv("RABBIT_CONSUMER_QUEUE"))
 		RabbitConsumerQueue = os.Getenv("RABBIT_CONSUMER_QUEUE")
 	} else {
 		logger.Info("RABBIT_CONSUMER_QUEUE environment variable is not set, using default", "value", RabbitConsumerQueue)
+	}
+
+	if os.Getenv("RABBIT_PUBLISHER_QUEUE") != "" {
+		logger.Info("RABBIT_PUBLISHER_QUEUE environment variable is set, using that", "value", os.Getenv("RABBIT_PUBLISHER_QUEUE"))
+		RabbitPublisherQueue = os.Getenv("RABBIT_PUBLISHER_QUEUE")
+	} else {
+		logger.Info("RABBIT_CONSUMER_QUEUE environment variable is not set, using default", "value", RabbitPublisherQueue)
 	}
 
 	if os.Getenv("RABBIT_ADDR") != "" {
@@ -54,6 +68,23 @@ func read_rabbit_environment() {
 	} else {
 		logger.Info("RABBIT_PORT environment variable is not set, using default", "value", RabbitPort)
 	}
+}
+
+func read_worker_environment() {
+	if os.Getenv("WORKER_IMAGE_NAME") != "" {
+		logger.Info("WORKER_IMAGE_NAME environment variable is set, using that", "value", os.Getenv("WORKER_IMAGE_NAME"))
+		WorkerImageName = os.Getenv("WORKER_IMAGE_NAME")
+	} else {
+		logger.Info("WORKER_IMAGE_NAME environment variable is not set, using default", "value", WorkerImageName)
+	}
+
+	if os.Getenv("WORKER_IMAGE_TAG") != "" {
+		logger.Info("WORKER_IMAGE_TAG environment variable is set, using that", "value", os.Getenv("WORKER_IMAGE_TAG"))
+		WorkerImageTag = os.Getenv("WORKER_IMAGE_TAG")
+	} else {
+		logger.Info("WORKER_IMAGE_TAG environment variable is not set, using default", "value", WorkerImageTag)
+	}
+
 }
 
 func main() {
@@ -85,6 +116,18 @@ func main() {
 			os.Exit(1)
 		}
 	}()
+
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		logger.Error("Failed to get cluster kubeconfig, exiting", "error", err)
+		os.Exit(1)
+	}
+	jobRunner, err := jobrunner.NewJobRunner(config, "amqp://"+RabbitUser+":"+RabbitPassword+"@"+RabbitAddr+":"+RabbitPort+"/", RabbitPublisherQueue)
+	if err != nil {
+		logger.Error("Failed to configure jobrunner, exiting", "error", err)
+		os.Exit(1)
+	}
+	read_worker_environment()
 
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
@@ -121,7 +164,7 @@ worker_loop:
 			}
 			logger.Info("Unmarshaled message from RabbitMQ", "msg", msg_json)
 			//Meghívjuk a jobot a paraméterekkel
-
+			jobRunner.CreateJob(msg_json)
 			//A feldolgozást megkezdtük -> ACK
 			deliveryctx.Accept(context.Background())
 		}

@@ -207,11 +207,19 @@ jobs:
             git config --global user.name 'GitHub Actions'
             git config --global user.email 'actions@github.com'
             git add values.yaml
-        - name: Update OCR service values.yaml
-          if: ${{ needs.changes.outputs.ocr-worker == 'true' || needs.changes.outputs.ocr-watcher == 'true'}}
+        - name: Update OCR service values.yaml to add watcher image tag
+          if: ${{ needs.changes.outputs.ocr-worker == 'true'}}
           run: |
             cd OCR_Service/helm
             sed -i 's|APP_VERSION:.*|APP_VERSION: '${{ github.sha }}'|' values.yaml 
+            git config --global user.name 'GitHub Actions'
+            git config --global user.email 'actions@github.com'
+            git add values.yaml
+        - name: Update OCR service values.yaml to add worker image tag
+          if: ${{needs.changes.outputs.ocr-watcher == 'true'}}
+          run: |
+            cd OCR_Service/helm
+            sed -i 's|worker_image_tag:.*|worker_image_tag: '${{ github.sha }}'|' values.yaml 
             git config --global user.name 'GitHub Actions'
             git config --global user.email 'actions@github.com'
             git add values.yaml

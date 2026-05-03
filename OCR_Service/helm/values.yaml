@@ -2,6 +2,8 @@
 env:
   #A két image egyszerre készül -> elég egy APP_VERSION (ha mégis kell több, akkor majd átírjuk)
   APP_VERSION: 04895853db1a73b51c1534c02a3e860c77b2eba3
+  worker_image_name: ocr-worker
+  worker_image_tag: imageTag
 rabbitmq:
   username: default_user_waFUPHY_m019tVF5FlC 
   password: J5RSzqB3jpZzIFtuFhenV7Nabw3Sb3g6

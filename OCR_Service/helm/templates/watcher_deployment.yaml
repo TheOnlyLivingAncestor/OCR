@@ -45,6 +45,10 @@ spec:
                 secretKeyRef:
                   name: rabbitmq-credentials
                   key: password
+            - name: WORKER_IMAGE_TAG
+              value: {{ .Values.env.worker_image_tag }}
+            - name: WORKER_IMAGE_NAME
+              value: {{ .Values.env.worker_image_name }}
           readinessProbe:
             exec:
               command:
