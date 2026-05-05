@@ -41,7 +41,7 @@ func NewOCRRequestHandler(logger *slog.Logger, minio_client storage.Storage, rab
 		//Upload image to object storage
 		id := uuid.New().String()
 		base_filename := id + filepath.Ext(handler.Filename)
-		upload_filename := id + "_processed" + filepath.Ext(handler.Filename)
+		upload_filename := id + "_processed.json"
 		metadata := make(map[string]string)
 		metadata["description"] = description
 		metadata["jobID"] = id
