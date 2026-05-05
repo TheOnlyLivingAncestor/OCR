@@ -32,7 +32,7 @@ def download_image(presigned_url):
     return image
 
 
-def main():
+if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
     rabbitAddress = get_env("RABBITMQ_URL")
