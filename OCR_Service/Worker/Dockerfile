@@ -9,6 +9,15 @@ RUN apt-get update && apt-get install -y wget unzip && rm -rf /var/lib/apt/lists
     unzip /home/app/EasyOCR/craft_mlt_25k.zip -d /home/app/EasyOCR/model && \
     rm /home/app/EasyOCR/*.zip
     
+
+RUN apt-get update && apt-get install -y \
+    wget unzip \
+    build-essential \
+    gcc \
+    libssl-dev \
+    libffi-dev \
+    python3-dev \
+    && rm -rf /var/lib/apt/lists/*
 # Set the working directory in the container
 WORKDIR /Worker
 
