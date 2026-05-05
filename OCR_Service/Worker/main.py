@@ -5,6 +5,7 @@ import numpy as np
 import json
 import requests
 import os
+import logging
 from rabbitmq_amqp_python_client import (
     Environment,
     QuorumQueueSpecification,
@@ -32,15 +33,23 @@ def download_image(presigned_url):
 
 
 def main():
+    logging.basicConfig(level=logging.INFO)
+
     rabbitAddress = get_env("RABBITMQ_URL")
     publisherQueue = get_env("RABBITMQ_PUBLISHER_QUEUE")
     downloadUrl = get_env("DOWNLOAD_URL")
     uploadUrl = get_env("UPLOAD_URL")
     jobID = get_env("JOBID")
+
+    logging.info(f"rabbitAddress: {rabbitAddress}")
+    logging.info(f"publisherQueue: {publisherQueue}")
+    logging.info(f"downloadUrl: {downloadUrl}")
+    logging.info(f"uploadUrl: {uploadUrl}")
+    logging.info(f"jobID: {jobID}")
     try:
         # Letöltjük a képet és elvégezzük rajta a szövegfelismerést
         image = download_image(downloadUrl)
-        print("Successfully downloaded image")
+        logging.info("Successfully downloaded image")
         results = reader.readtext(image,
                                   paragraph=True,
                                   slope_ths=0.4,
@@ -66,16 +75,18 @@ def main():
             "results": results_json
         }
 
+        logging.info(f"OCR result: {ocr_result}")
+
         ocr_result_json = json.dumps(ocr_result).encode('utf-8')
         response = requests.put(uploadUrl,
                                 data=ocr_result_json,
                                 headers={'Content-Type': 'application/json'})
 
         if response.status_code == 200:
-            print("OCR result successfully uploaded.")
+            logging.info("OCR result successfully uploaded.")
         else:
             errormsg = {response.status_code} + "-" + {response.text}
-            print(f"Error during upload: {errormsg}")
+            logging.error(f"Error during upload: {errormsg}")
 
         # Publish to rabbitMQ
         environment = Environment(rabbitAddress)
@@ -98,4 +109,5 @@ def main():
         connection.close()
         environment.close()
     except Exception as e:
+        logging.error("Something happened: {e}")
         raise RuntimeError(f"Failed to process task {e}")
