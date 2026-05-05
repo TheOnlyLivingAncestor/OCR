@@ -90,6 +90,7 @@ func read_worker_environment() {
 func main() {
 	logger.Info("Setting up RabbitMQ")
 	read_rabbit_environment()
+	read_worker_environment()
 	rmq, err := queue.NewRabbitMQ("amqp://" + RabbitUser + ":" + RabbitPassword + "@" + RabbitAddr + ":" + RabbitPort + "/")
 	if err != nil {
 		logger.Error("Failed to create RabbitMQ object, exiting", "error", err)
