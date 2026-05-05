@@ -97,7 +97,7 @@ if __name__ == "__main__":
         publisher = connection.publisher()
 
         msg = Message(body=f"OCR recognition finished with ID:{jobID}")
-        publisher.publish(message=msg, to=publisherQueue)
+        publisher.publish(message=msg, routing_key=publisherQueue)
 
         print("OCR result published in RabbitMQ")
 
