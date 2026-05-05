@@ -8,7 +8,7 @@ import os
 import logging
 from rabbitmq_amqp_python_client import (
     Environment,
-    QuorumQueueSpecification,
+    QueueSpecification,
     Message
 )
 
@@ -95,7 +95,7 @@ if __name__ == "__main__":
 
         management = connection.management()
         management.declare_queue(
-            QuorumQueueSpecification(name=publisherQueue)
+            QueueSpecification(name=publisherQueue)
         )
 
         publisher = connection.publisher()
