@@ -122,7 +122,7 @@ func main() {
 		logger.Error("Failed to get cluster kubeconfig, exiting", "error", err)
 		os.Exit(1)
 	}
-	jobRunner, err := jobrunner.NewJobRunner(config, "amqp://"+RabbitUser+":"+RabbitPassword+"@"+RabbitAddr+":"+RabbitPort+"/", RabbitPublisherQueue)
+	jobRunner, err := jobrunner.NewJobRunner(config, "amqp://"+RabbitUser+":"+RabbitPassword+"@"+RabbitAddr+":"+RabbitPort+"/", RabbitPublisherQueue, "vitezalexandra/"+WorkerImageName+":"+WorkerImageTag)
 	if err != nil {
 		logger.Error("Failed to configure jobrunner, exiting", "error", err)
 		os.Exit(1)

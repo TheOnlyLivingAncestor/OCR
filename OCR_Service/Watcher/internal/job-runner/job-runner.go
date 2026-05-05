@@ -23,13 +23,13 @@ type JobRunner struct {
 	dockerImage    string
 }
 
-func NewJobRunner(kubeconfig *rest.Config, rmqAddress string, publisherqueue string) (*JobRunner, error) {
+func NewJobRunner(kubeconfig *rest.Config, rmqAddress string, publisherqueue string, image string) (*JobRunner, error) {
 	clientSet, err := kubernetes.NewForConfig(kubeconfig)
 	if err != nil {
 		logger.Error("Failed to create Kubernetes clientset", "error", err)
 		return &JobRunner{}, err
 	}
-	return &JobRunner{clientSet: clientSet, rmqAddress: rmqAddress, publisherQueue: publisherqueue}, nil
+	return &JobRunner{clientSet: clientSet, rmqAddress: rmqAddress, publisherQueue: publisherqueue, dockerImage: image}, nil
 }
 
 func (j *JobRunner) CreateJob(ocrData queue.RmqMessage) error {
