@@ -1,7 +1,7 @@
 # Egyenlőre csak az image build a fontos -> a részletek és a helm chart további elemei majd implementációkor
 env:
   #A két image egyszerre készül -> elég egy APP_VERSION (ha mégis kell több, akkor majd átírjuk)
-  APP_VERSION: fa49ded99a7ceae1ec0b57c3531287962c06cce0
+  APP_VERSION: 5221082808e61a79bd16c924b6658772d6733a29
   worker_image_name: ocr-worker
   worker_image_tag: fa49ded99a7ceae1ec0b57c3531287962c06cce0
 rabbitmq:
