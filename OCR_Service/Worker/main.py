@@ -8,7 +8,6 @@ import os
 import logging
 from rabbitmq_amqp_python_client import (
     Environment,
-    QueueSpecification,
     Message
 )
 
@@ -94,9 +93,6 @@ if __name__ == "__main__":
         connection.dial()
 
         management = connection.management()
-        management.declare_queue(
-            QueueSpecification(name=publisherQueue)
-        )
 
         publisher = connection.publisher()
 
