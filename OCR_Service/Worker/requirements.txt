@@ -1,0 +1,6 @@
+easyocr
+opencv-python-headless
+requests
+cv2
+numpy
+rabbitmq-amqp-python-client
