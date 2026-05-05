@@ -160,13 +160,23 @@ worker_loop:
 			if err = json.Unmarshal(msg, &msg_json); err != nil {
 				logger.Error("Failed to unmarshal message", "error", err)
 				//Nem tudjuk processzálni az üzenetet -> nagy valséggel hibás, discard
-				deliveryctx.Discard(context.Background(), nil)
+				err = deliveryctx.Discard(context.Background(), nil)
+				if err != nil {
+					logger.Error("Failed to discard message", "error", err)
+				}
 			}
 			logger.Info("Unmarshaled message from RabbitMQ", "msg", msg_json)
 			//Meghívjuk a jobot a paraméterekkel
-			jobRunner.CreateJob(msg_json)
+			err = jobRunner.CreateJob(msg_json)
+			if err != nil {
+				logger.Error("Failed to create job to process message")
+				continue
+			}
 			//A feldolgozást megkezdtük -> ACK
-			deliveryctx.Accept(context.Background())
+			err = deliveryctx.Accept(context.Background())
+			if err != nil {
+				logger.Error("Error during accepting message", "error", err)
+			}
 		}
 	}
 

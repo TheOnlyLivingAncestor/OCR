@@ -4,7 +4,6 @@ import base64
 import numpy as np
 import json
 import requests
-import logging
 import os
 from rabbitmq_amqp_python_client import (
     Environment,
@@ -12,13 +11,17 @@ from rabbitmq_amqp_python_client import (
     Message
 )
 
-reader = easyocr.Reader(['en'],download_enabled=False ,model_storage_directory="/home/app/EasyOCR/model", gpu=False)
+reader = easyocr.Reader(['en'], download_enabled=False,
+                        model_storage_directory="/home/app/EasyOCR/model",
+                        gpu=False)
+
 
 def get_env(name: str) -> str:
     value = os.getenv(name)
     if not value:
         raise RuntimeError(f"Missing required env var: {name}")
     return value
+
 
 def download_image(presigned_url):
     response = requests.get(presigned_url)
@@ -27,6 +30,7 @@ def download_image(presigned_url):
     image = cv2.imdecode(image_bytes, cv2.IMREAD_COLOR)
     return image
 
+
 def main():
     rabbitAddress = get_env("RABBITMQ_URL")
     publisherQueue = get_env("RABBITMQ_PUBLISHER_QUEUE")
@@ -34,20 +38,23 @@ def main():
     uploadUrl = get_env("UPLOAD_URL")
     jobID = get_env("JOBID")
     try:
-        #Letöltjük a képet és elvégezzük rajta a szövegfelismerést
+        # Letöltjük a képet és elvégezzük rajta a szövegfelismerést
         image = download_image(downloadUrl)
-        results = reader.readtext(image, paragraph=True, slope_ths=0.4, width_ths=0.7)
+        results = reader.readtext(image,
+                                  paragraph=True,
+                                  slope_ths=0.4,
+                                  width_ths=0.7)
 
-        #Berajzoljuk a képen a a dobozokat
-        for (boundary, _ ) in results:
+        # Berajzoljuk a képen a a dobozokat
+        for (boundary, _) in results:
             pts = np.array(boundary, dtype=np.int32)
             cv2.polylines(image, [pts], True, (0, 255, 0), 2)
 
-        #Az annotált kép
+        # Az annotált kép
         buf = cv2.imencode('.jpg', image)[1]
         annotated_b64 = base64.b64encode(buf).decode('utf-8')
 
-        #detektált szövegek összegyűjtése
+        # detektált szövegek összegyűjtése
         results_json = []
         for (_, text) in results:
             results_json.append(text)
@@ -59,15 +66,17 @@ def main():
         }
 
         ocr_result_json = json.dumps(ocr_result).encode('utf-8')
-        response = requests.put(uploadUrl, data=ocr_result_json, headers={'Content-Type': 'application/json'})
-
+        response = requests.put(uploadUrl,
+                                data=ocr_result_json,
+                                headers={'Content-Type': 'application/json'})
 
         if response.status_code == 200:
             print("OCR result successfully uploaded.")
         else:
-            print(f"Error during upload: {response.status_code} - {response.text}")
+            errormsg = {response.status_code} + "-" + {response.text}
+            print(f"Error during upload: {errormsg}")
 
-        #Publish to rabbitMQ
+        # Publish to rabbitMQ
         environment = Environment(rabbitAddress)
         connection = environment.connection()
         connection.dial()
@@ -88,6 +97,4 @@ def main():
         connection.close()
         environment.close()
     except Exception as e:
-        raise RuntimeError("Failed to process task")
-
-
+        raise RuntimeError(f"Failed to process task {e}")
