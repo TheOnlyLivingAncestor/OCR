@@ -40,6 +40,7 @@ def main():
     try:
         # Letöltjük a képet és elvégezzük rajta a szövegfelismerést
         image = download_image(downloadUrl)
+        print("Successfully downloaded image")
         results = reader.readtext(image,
                                   paragraph=True,
                                   slope_ths=0.4,

@@ -175,7 +175,7 @@ worker_loop:
 			//A feldolgozást megkezdtük -> ACK
 			err = deliveryctx.Accept(context.Background())
 			if err != nil {
-				logger.Error("Error during accepting message", "error", err)
+				logger.Error("Error during accepting the message", "error", err)
 			}
 		}
 	}
