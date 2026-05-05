@@ -1,6 +1,5 @@
 easyocr
 opencv-python-headless
 requests
-opencv-python
 numpy
 rabbitmq-amqp-python-client
