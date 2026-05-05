@@ -11,6 +11,7 @@ spec:
       labels:
         app: ocr-watcher
     spec:
+      serviceAccountName: ocr-watcher-sa
       containers:
         - name: ocr-watcher
           image: vitezalexandra/ocr-watcher:{{ .Values.env.APP_VERSION }}
