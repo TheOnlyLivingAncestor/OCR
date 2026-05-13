@@ -8,7 +8,8 @@ import os
 import logging
 from rabbitmq_amqp_python_client import (
     Environment,
-    Message
+    Message,
+    AddressHelper
 )
 
 reader = easyocr.Reader(['en'], download_enabled=False,
@@ -94,10 +95,11 @@ if __name__ == "__main__":
 
         management = connection.management()
 
-        publisher = connection.publisher()
+        queue_address = AddressHelper.queue_address(publisherQueue)
+        publisher = connection.publisher(queue_address)
 
         msg = Message(body=f"OCR recognition finished with ID:{jobID}")
-        publisher.publish(message=msg, routing_key=publisherQueue)
+        publisher.publish(msg)
 
         print("OCR result published in RabbitMQ")
 
