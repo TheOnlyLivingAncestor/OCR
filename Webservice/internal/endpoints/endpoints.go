@@ -39,6 +39,14 @@ func NewWebSocketHandler(logger *slog.Logger) http.HandlerFunc {
 		Mu.Unlock()
 
 		logger.Info("Websocket saved", "jobID", jobID)
+
+		for {
+			_, _, err := con.ReadMessage()
+			if err != nil {
+				logger.Error("Websocket closed", "error", err)
+				break
+			}
+		}
 	}
 }
 
