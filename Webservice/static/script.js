@@ -43,7 +43,7 @@ form.addEventListener("submit", async (event) => {
         const jobID = await imageUpload(image, description);
         console.log("JobID", jobID)
         const socket = new WebSocket(
-            `ws://localhost:8080/ws?jobID=${jobID}`
+            `ws://${window.location.host}/ws?jobID=${jobID}`
         );
 
         socket.onmessage = (event) => {
