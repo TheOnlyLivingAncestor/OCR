@@ -13,6 +13,8 @@ WORKDIR /app/Webservice
 
 RUN go mod download
 
+RUN ls
+
 # Build the binary!
 RUN CGO_ENABLED=0 GOOS=linux go build -a -o webservice
 
