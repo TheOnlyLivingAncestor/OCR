@@ -41,42 +41,56 @@ form.addEventListener("submit", async (event) => {
 
     try {
         const jobID = await imageUpload(image, description);
-        console.log("JobID", jobID)
+
         const socket = new WebSocket(
             `ws://${window.location.host}/ws?jobID=${jobID}`
         );
 
+        socket.onopen = () => {
+            console.log("Websocket kapcsolat létrejött")
+        }
+
         socket.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            console.log(data.results)
-        }
+            console.log("Websocket üzenet érkezett");
+            const result = JSON.parse(event.data);
 
-
-        //Visszaérkezett eredmény megjelenítése
-        let imagecontainer = document.getElementById("imageContainer");
-        let resultcontainer = document.getElementById("resultContainer");
-        imagecontainer.innerHTML = '';
-        if (result.image){
-            //Ha érkezett vissza kép, akkor megjelenítem
-            imagecontainer.parentNode.style.display="flex";
-            const img = document.createElement("img");
-            img.src = "data:image/png;base64," + result.image;
-            img.alt = "Feldolgozott kép";
-            img.style.maxWidth = "100%";
-            img.style.height = "auto";
-            imagecontainer.appendChild(img);
-        }else {
-            imagecontainer.textContent = "Nem érkezett vissza kép az OCR feldolgozásból.";
-        }
-        if (result.results){
-            //Ha érkezett vissza szöveg, akkor megjelenítem
-            let pre = resultcontainer.querySelector("pre");
-            if (!pre) {
-                pre = document.createElement("pre");
-                resultcontainer.appendChild(pre);
+            //Visszaérkezett eredmény megjelenítése
+            let imagecontainer = document.getElementById("imageContainer");
+            let resultcontainer = document.getElementById("resultContainer");
+            imagecontainer.innerHTML = '';
+            if (result.image){
+                //Ha érkezett vissza kép, akkor megjelenítem
+                imagecontainer.parentNode.style.display="flex";
+                const img = document.createElement("img");
+                img.src = "data:image/png;base64," + result.image;
+                img.alt = "Feldolgozott kép";
+                img.style.maxWidth = "100%";
+                img.style.height = "auto";
+                imagecontainer.appendChild(img);
+            }else {
+                imagecontainer.textContent = "Nem érkezett vissza kép az OCR feldolgozásból.";
             }
-            pre.textContent = result.results.join("\n");
-        }
+            if (result.results){
+                //Ha érkezett vissza szöveg, akkor megjelenítem
+                let pre = resultcontainer.querySelector("pre");
+                if (!pre) {
+                    pre = document.createElement("pre");
+                    resultcontainer.appendChild(pre);
+                }
+                pre.textContent = result.results.join("\n");
+            }
+
+            //Websocket lezárása
+            socket.close();
+        };
+
+        socket.onclose = () => {
+            console.log("WebSocket kapcsolat lezárva");
+        };
+
+        socket.onerror = (error) => {
+            console.error("WebSocket hiba:", error);
+        };
 
     } catch (error) {
         console.error("Hiba a kép kódolásakor:", error);
