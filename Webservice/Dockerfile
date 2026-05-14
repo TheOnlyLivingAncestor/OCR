@@ -9,6 +9,8 @@ COPY . /
 # Set the working directory to the same place we copied the code
 WORKDIR /
 
+RUN go mod download
+
 # Build the binary!
 RUN CGO_ENABLED=0 GOOS=linux go build -a -o webservice
 
