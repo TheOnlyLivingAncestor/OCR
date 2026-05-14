@@ -7,14 +7,12 @@ import (
 	"net/http"
 	"ocr/packages/queue"
 	"path/filepath"
-	"sync"
 
-	"github.com/gorilla/websocket"
 	rmq "github.com/rabbitmq/rabbitmq-amqp-go-client/pkg/rabbitmqamqp"
 )
 
-var cliens = make(map[string]*websocket.Conn)
-var mu sync.RWMutex
+//var cliens = make(map[string]*websocket.Conn)
+//var mu sync.RWMutex
 
 func NewOCRRequestHandler(logger *slog.Logger, minio_client storage.Storage, rabbitmq queue.Queue) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
