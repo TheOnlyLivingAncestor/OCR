@@ -20,12 +20,18 @@ type Queue interface {
 	CreateAll(string, string) error
 	CloseAll() error
 	GetMessage() (rmq.IDeliveryContext, error)
+	PublishMessage(data []byte) (rmq.PublishResult, error)
 }
 
 type RmqMessage struct {
 	Download_link string `json:"download_link"`
 	Upload_link   string `json:"upload_link"`
 	JobID         string `json:"jobID"`
+}
+
+type RmqSuccess struct {
+	Message string `json:"msg"`
+	JobID   string `json:"jobID"`
 }
 
 type RabbitMQ struct {
@@ -144,4 +150,14 @@ func (q *RabbitMQ) GetMessage() (rmq.IDeliveryContext, error) {
 		logger.Error("Getting message from RabbitMQ failed", "error", err)
 	}
 	return deliveryctx, err
+}
+
+func (q *RabbitMQ) PublishMessage(data []byte) (rmq.PublishResult, error) {
+	message := rmq.NewMessage(data)
+	publish_result, err := q.publisher.Publish(context.Background(), message)
+	if err != nil {
+		logger.Error("There was an error during message publishing", "error", err)
+	}
+	logger.Info("Message publishing succeeded", "data", data)
+	return *publish_result, err
 }

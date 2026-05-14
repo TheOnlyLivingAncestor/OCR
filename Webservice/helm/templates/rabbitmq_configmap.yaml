@@ -6,4 +6,5 @@ metadata:
 data:
   rabbitmq_service_name: "{{ .Values.rabbitmq.service_name}}"
   rabbitmq_service_port: "{{ .Values.rabbitmq.service_port}}"
-  rabbitmq_queue_name: "{{ .Values.rabbitmq.queue_name}}"
+  rabbitmq_publisher_queue_name: "{{ .Values.rabbitmq.publisher_queue_name}}"
+  rabbitmq_consumer_queue_name: "{{ .Values.rabbitmq.consumer_queue_name}}"

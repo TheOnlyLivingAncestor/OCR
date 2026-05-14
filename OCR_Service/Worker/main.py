@@ -98,8 +98,11 @@ if __name__ == "__main__":
         queue_address = AddressHelper.queue_address(publisherQueue)
         publisher = connection.publisher(queue_address)
 
-        message_body = f"OCR recognition finished with ID:{jobID}"
-        encoded_message_body = message_body.encode("utf-8")
+        message_body = {
+            "msg": "OCR request recognition finished",
+            "jobID": jobID
+        }
+        encoded_message_body = json.dumps(message_body).encode("utf-8")
         msg = Message(body=encoded_message_body)
         publisher.publish(msg)
 

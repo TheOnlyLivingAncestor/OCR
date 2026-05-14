@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"encoding/json"
 	"io"
 	"log/slog"
 	"time"
@@ -22,6 +23,12 @@ type UploadRequest struct {
 	FileName    string
 	ContentType string
 	Metadata    map[string]string
+}
+
+type Downloaded_json struct {
+	JobID   string   `json:"jobIDdownload_link"`
+	Image   string   `json:"image"`
+	Results []string `json:"results"`
 }
 
 type MinioStorage struct {
@@ -74,6 +81,27 @@ func (storage *MinioStorage) Upload(ctx context.Context, request UploadRequest) 
 		return err
 	}
 	return nil
+}
+
+func (storage *MinioStorage) Download(object_name string) (Downloaded_json, error) {
+	object_reader, err := storage.client.GetObject(context.Background(), storage.bucket, object_name, minio.GetObjectOptions{})
+	if err != nil {
+		storage.logger.Error("Failed to download object", "error", err)
+		return Downloaded_json{}, err
+	}
+	defer func() {
+		if err := object_reader.Close(); err != nil {
+			storage.logger.Error("Failed to close object", "error", err)
+		}
+	}()
+	var object Downloaded_json
+	err = json.NewDecoder(object_reader).Decode(&object)
+	if err != nil {
+		storage.logger.Error("Failed to unmarshal downloaded json", "error", err)
+		return Downloaded_json{}, err
+	}
+	storage.logger.Info("Downloaded content", "jobId", object.JobID, "data", object.Results)
+	return object, nil
 }
 
 func (storage *MinioStorage) Get_Download_URL(ctx context.Context, filename string) (string, error) {

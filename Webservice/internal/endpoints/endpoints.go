@@ -1,16 +1,20 @@
 package endpoints
 
 import (
-	"OCR/webservice/internal/queue"
 	"OCR/webservice/internal/storage"
 	"encoding/json"
 	"log/slog"
 	"net/http"
+	"ocr/packages/queue"
 	"path/filepath"
+	"sync"
 
-	"github.com/google/uuid"
+	"github.com/gorilla/websocket"
 	rmq "github.com/rabbitmq/rabbitmq-amqp-go-client/pkg/rabbitmqamqp"
 )
+
+var cliens = make(map[string]*websocket.Conn)
+var mu sync.RWMutex
 
 func NewOCRRequestHandler(logger *slog.Logger, minio_client storage.Storage, rabbitmq queue.Queue) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -38,8 +42,14 @@ func NewOCRRequestHandler(logger *slog.Logger, minio_client storage.Storage, rab
 			return
 		}
 		logger.Info("Description of image read successfully", "text", description)
+
+		id := r.FormValue("jobID")
+		if id == "" {
+			logger.Info("JobID is empty")
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
 		//Upload image to object storage
-		id := uuid.New().String()
 		base_filename := id + filepath.Ext(handler.Filename)
 		upload_filename := id + "_processed.json"
 		metadata := make(map[string]string)
@@ -73,7 +83,7 @@ func NewOCRRequestHandler(logger *slog.Logger, minio_client storage.Storage, rab
 		}
 
 		//Send message to RabbitMQ queue
-		data, err := json.Marshal(queue.Message{
+		data, err := json.Marshal(queue.RmqMessage{
 			Download_link: download_link,
 			Upload_link:   upload_link,
 			JobID:         id,
@@ -81,10 +91,11 @@ func NewOCRRequestHandler(logger *slog.Logger, minio_client storage.Storage, rab
 		if err != nil {
 			logger.Error("Failed to Marshal RabbitMQ message", "error", err)
 		}
-		publish_result, err := rabbitmq.PublishImageReady(data)
+		publish_result, err := rabbitmq.PublishMessage(data)
 		if err != nil {
 			logger.Error("Failed to publish message", "error", err)
 		}
+		//Bele kell tenni egy globális változóba az OCR requestet
 		switch publish_result.Outcome.(type) {
 		case *rmq.StateAccepted:
 			logger.Info("The ocr-request message was accepted by RabbitMQ.")

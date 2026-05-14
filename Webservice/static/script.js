@@ -3,6 +3,10 @@ const form = document.getElementById("detectionForm");
 
 async function imageProcessing(image, description) {
     const formData = new FormData();
+
+    // Egyedi azonosító generálása
+    const jobID = crypto.randomUUID();
+    formData.append('jobID', jobID);
     formData.append('image', image);
     formData.append('description', description)
 

@@ -12,6 +12,7 @@ minio:
 rabbitmq:
   service_name: hello-world.rabbitmq-cluster.svc.cluster.local
   service_port: 5672
-  queue_name: recognition-request
+  publisher_queue_name: recognition-request
+  consumer_queue_name: recognition-successful
   username: default_user_waFUPHY_m019tVF5FlC
   password: J5RSzqB3jpZzIFtuFhenV7Nabw3Sb3g6

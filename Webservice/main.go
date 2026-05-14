@@ -2,19 +2,19 @@ package main
 
 import (
 	"OCR/webservice/internal/endpoints"
-	"OCR/webservice/internal/queue"
 	"OCR/webservice/internal/storage"
 	"context"
+	"encoding/json"
 	"log"
 	"log/slog"
 	"net/http"
+	"ocr/packages/queue"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
 	"github.com/minio/minio-go/v7/pkg/credentials"
-	rmq "github.com/rabbitmq/rabbitmq-amqp-go-client/pkg/rabbitmqamqp"
 )
 
 var MinioAddr = "minio.minio.svc.cluster.local"
@@ -25,7 +25,8 @@ var MinioPassword = "minioadmin"
 
 var RabbitAddr = "hello-world.rabbitmq-cluster.svc.cluster.local"
 var RabbitPort = "5672"
-var RabbitQueue = "recognition-request"
+var RabbitPublisherQueue = "recognition-request"
+var RabbitConsumerQueue = "recognition-successful"
 var RabbitUser = "guest"
 var RabbitPassword = "guest"
 
@@ -76,12 +77,19 @@ func read_minio_environment(logger *slog.Logger) {
 }
 
 func read_rabbit_environment(logger *slog.Logger) {
-	//Read minio variables from environment variables
-	if os.Getenv("RABBIT_QUEUE") != "" {
-		logger.Info("RABBIT_QUEUE environment variable is set, using that", "value", os.Getenv("RABBIT_QUEUE"))
-		RabbitQueue = os.Getenv("RABBIT_QUEUE")
+	//Read rabbitmq variables from environment variables
+	if os.Getenv("RABBIT_PUBLISHER_QUEUE") != "" {
+		logger.Info("RABBIT_PUBLISHER_QUEUE environment variable is set, using that", "value", os.Getenv("RABBIT_PUBLISHER_QUEUE"))
+		RabbitPublisherQueue = os.Getenv("RABBIT_PUBLISHER_QUEUE")
 	} else {
-		logger.Info("RABBIT_QUEUE environment variable is not set, using default", "value", RabbitQueue)
+		logger.Info("RABBIT_QUEUE environment variable is not set, using default", "value", RabbitPublisherQueue)
+	}
+
+	if os.Getenv("RABBIT_CONSUMER_QUEUE") != "" {
+		logger.Info("RABBIT_CONSUMER_QUEUE environment variable is set, using that", "value", os.Getenv("RABBIT_CONSUMER_QUEUE"))
+		RabbitConsumerQueue = os.Getenv("RABBIT_CONSUMER_QUEUE")
+	} else {
+		logger.Info("RABBIT_CONSUMER_QUEUE environment variable is not set, using default", "value", RabbitConsumerQueue)
 	}
 
 	if os.Getenv("RABBIT_ADDR") != "" {
@@ -112,6 +120,48 @@ func read_rabbit_environment(logger *slog.Logger) {
 	}
 }
 
+func rmq_consumer_loop(ctx context.Context, logger *slog.Logger, rmq queue.Queue, minio *storage.MinioStorage) {
+consumer_loop:
+	for {
+		select {
+		case <-ctx.Done():
+			logger.Info("Shutting down consumer loop")
+			break consumer_loop
+		default:
+			deliveryctx, err := rmq.GetMessage()
+			if err != nil {
+				logger.Error("Failed to receive message from RabbitMQ", "error", err)
+				continue
+			}
+			msg := deliveryctx.Message().GetData()
+			logger.Info("Received message", "data", msg)
+			var msg_json queue.RmqSuccess
+			if err = json.Unmarshal(msg, &msg_json); err != nil {
+				logger.Error("Failed to unmarshal message", "error", err)
+				//Nem tudjuk processzálni az üzenetet -> nagy valséggel hibás, discard?
+				err = deliveryctx.Discard(context.Background(), nil)
+				if err != nil {
+					logger.Error("Failed to discard message", "error", err)
+				}
+			}
+			logger.Info("Unmarshaled message from RabbitMQ", "msg", msg_json)
+			//Megkaptuk az üzenetet, RMQ részéről kész vagyunk -> Accept
+			err = deliveryctx.Accept(context.Background())
+			if err != nil {
+				logger.Error("Error during accepting the message", "error", err)
+			}
+			//Le kell hívni az adott JobID-vel az eredményeket, és a websocketnek továbbítani
+			ocr_result, err := minio.Download(msg_json.JobID + "_processed.json")
+			if err != nil {
+				logger.Error("Failed to download OCR result", "error", err)
+				//Vissza kell küldeni vmi error code-t a websocketen?
+			}
+			logger.Info("Successfully downloaded OCR result", "image", ocr_result.Image, "jobID", ocr_result.JobID, "results", ocr_result.Results)
+			//Websocketre továbbítunk
+		}
+	}
+}
+
 func main() {
 	// Set the default logger to a fancier log format.
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
@@ -129,35 +179,22 @@ func main() {
 		os.Exit(1)
 	}
 
-	rabbitmq_env := rmq.NewEnvironment("amqp://"+RabbitUser+":"+RabbitPassword+"@"+RabbitAddr+":"+RabbitPort+"/", nil)
-	connection, err := rabbitmq_env.NewConnection(context.Background())
+	rmq, err := queue.NewRabbitMQ("amqp://" + RabbitUser + ":" + RabbitPassword + "@" + RabbitAddr + ":" + RabbitPort + "/")
 	if err != nil {
-		logger.Error("Connecting to RabbitMQ failed", "error", err)
-	}
-	logger.Info("Connecting to RabbitMQ succeeded")
-
-	defer func() {
-		if err := connection.Close(context.Background()); err != nil {
-			logger.Error("Failed to close RabbitMQ connection", "error", err)
-		}
-	}()
-
-	publisher, err := connection.NewPublisher(context.Background(),
-		&rmq.QueueAddress{
-			Queue: RabbitQueue,
-		},
-		nil,
-	)
-	if err != nil {
-		logger.Error("RabbitMQ publisher creation failed, exiting", "error", err)
+		logger.Error("Could not create RabbitMQ environment, exiting", "error", err)
 		os.Exit(1)
 	}
 
-	rmq_queue := queue.NewRabbitQueue(publisher, logger)
+	err = rmq.CreateAll(RabbitConsumerQueue, RabbitPublisherQueue)
+	if err != nil {
+		logger.Error("Creating RabbitMQ componenst failed, exiting", "error", err)
+		os.Exit(1)
+	}
+	logger.Info("Creating RabbitMQ components succeeded")
 
 	defer func() {
-		if err := publisher.Close(context.Background()); err != nil {
-			logger.Error("Error occurred while closing publisher", "error", err)
+		if err := rmq.CloseAll(); err != nil {
+			logger.Error("Failed to close RabbitMQ components", "error", err)
 		}
 	}()
 
@@ -165,8 +202,14 @@ func main() {
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
 	http.HandleFunc("/", endpoints.NewUIHandler(logger))
-	http.HandleFunc("/process", endpoints.NewOCRRequestHandler(logger, minio_storage, rmq_queue))
+	http.HandleFunc("/process", endpoints.NewOCRRequestHandler(logger, minio_storage, rmq))
 	http.HandleFunc("/healthz", endpoints.NewHealthzHandler(logger))
+
+	//Start the rabbitMQ consumer in a goroutine
+	rmq_ctx, rmq_cancel := context.WithCancel(context.Background())
+	defer rmq_cancel()
+
+	go rmq_consumer_loop(rmq_ctx, logger, rmq, minio_storage)
 
 	//HTTP server starts in a goroutine to handle graceful shutdown
 	s := &http.Server{Addr: ":8080"}
@@ -177,6 +220,7 @@ func main() {
 	<-sigChan
 
 	logger.Info("Shutdown signal received")
+	rmq_cancel()
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
 	defer cancel()
 	err = s.Shutdown(ctx)

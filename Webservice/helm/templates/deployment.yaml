@@ -50,11 +50,16 @@ spec:
                 configMapKeyRef:
                   name: rabbitmq-configmap
                   key: rabbitmq_service_port
-            - name: RABBIT_QUEUE
+            - name: RABBIT_PUBLISHER_QUEUE
               valueFrom:
                 configMapKeyRef:
                   name: rabbitmq-configmap
-                  key: rabbitmq_queue_name
+                  key: rabbitmq_publisher_queue_name
+            - name: RABBIT_CONSUMER_QUEUE
+              valueFrom:
+                configMapKeyRef:
+                  name: rabbitmq-configmap
+                  key: rabbitmq_consumer_queue_name
             - name: RABBIT_USER
               valueFrom:
                 secretKeyRef:
