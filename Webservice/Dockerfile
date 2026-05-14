@@ -21,8 +21,10 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -o webservice
 ############################################
 FROM scratch
 
+RUN ls
+
 # Copy the binary from the host.
-COPY --from=build /webservice .
+COPY --from=build /app/Webservice/webservice .
 COPY /app/Webservice/static /static
 
 # Tell Docker to execute this command on a `docker run`.
