@@ -160,7 +160,7 @@ consumer_loop:
 			//Websocketre továbbítunk
 			endpoints.Mu.RLock()
 			con := endpoints.Clients[ocr_result.JobID]
-			endpoints.Mu.Unlock()
+			endpoints.Mu.RUnlock()
 
 			if con != nil {
 				err = con.WriteJSON(ocr_result)

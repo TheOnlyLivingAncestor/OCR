@@ -18,6 +18,7 @@ var Mu sync.RWMutex
 
 func NewWebSocketHandler(logger *slog.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		logger.Info("WS HIT", "url", r.URL.String())
 		jobID := r.URL.Query().Get("jobID")
 
 		//HTTP -> Websocket upgrade
