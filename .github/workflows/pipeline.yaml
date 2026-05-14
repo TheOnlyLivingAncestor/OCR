@@ -85,7 +85,8 @@ jobs:
         - name: Build and push Docker image
           uses: docker/build-push-action@v4
           with:
-            context: ./Webservice
+            context: .
+            file: ./Webservice/Dockerfile
             push: true
             platforms: linux/arm64
             tags: ${{ env.DOCKERHUB_USERNAME }}/${{ env.WEBSERVICE_IMAGE_NAME }}:${{ github.sha }}
