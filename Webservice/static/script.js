@@ -1,7 +1,7 @@
 // Defer-rel töltöttem be a scriptet, így a html elemek már léteznek, amikor ezt a kódot futtatom
 const form = document.getElementById("detectionForm");
 
-async function imageProcessing(image, description) {
+async function imageUpload(image, description) {
     const formData = new FormData();
 
     // Egyedi azonosító generálása
@@ -9,7 +9,6 @@ async function imageProcessing(image, description) {
     formData.append('jobID', jobID);
     formData.append('image', image);
     formData.append('description', description)
-
     const response = await fetch('/process', {
         method: 'POST',
         body: formData
@@ -17,7 +16,7 @@ async function imageProcessing(image, description) {
 
     if(response.ok){
         console.log('Sikeres képfeltöltés!');
-        return response
+        return jobID
     } else {
         console.error('Hiba történt a kép processzálása során!');
         const text = await response.text();
@@ -41,8 +40,17 @@ form.addEventListener("submit", async (event) => {
     }
 
     try {
-        const response = await imageProcessing(image, description);
-        const result = await response.json();
+        const jobID = await imageProcessing(image, description);
+        console.log("JobID", jobID)
+        const socket = new WebSocket(
+            `ws://localhost:8080/ws?jobID=${jobID}`
+        );
+
+        socket.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            console.log(data.results)
+        }
+
 
         //Visszaérkezett eredmény megjelenítése
         let imagecontainer = document.getElementById("imageContainer");

@@ -158,6 +158,15 @@ consumer_loop:
 			}
 			logger.Info("Successfully downloaded OCR result", "image", ocr_result.Image, "jobID", ocr_result.JobID, "results", ocr_result.Results)
 			//Websocketre továbbítunk
+			endpoints.Mu.RLock()
+			con := endpoints.Clients[ocr_result.JobID]
+			endpoints.Mu.Unlock()
+
+			if con != nil {
+				err = con.WriteJSON(ocr_result)
+			} else {
+				logger.Error("Websocket connection was not found", "jobID", ocr_result.JobID)
+			}
 		}
 	}
 }
@@ -204,6 +213,7 @@ func main() {
 	http.HandleFunc("/", endpoints.NewUIHandler(logger))
 	http.HandleFunc("/process", endpoints.NewOCRRequestHandler(logger, minio_storage, rmq))
 	http.HandleFunc("/healthz", endpoints.NewHealthzHandler(logger))
+	http.HandleFunc("/ws", endpoints.NewWebSocketHandler(logger))
 
 	//Start the rabbitMQ consumer in a goroutine
 	rmq_ctx, rmq_cancel := context.WithCancel(context.Background())

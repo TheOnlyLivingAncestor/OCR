@@ -26,7 +26,7 @@ type UploadRequest struct {
 }
 
 type Downloaded_json struct {
-	JobID   string   `json:"jobIDdownload_link"`
+	JobID   string   `json:"jobID"`
 	Image   string   `json:"image"`
 	Results []string `json:"results"`
 }

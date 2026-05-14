@@ -7,12 +7,36 @@ import (
 	"net/http"
 	"ocr/packages/queue"
 	"path/filepath"
+	"sync"
 
+	"github.com/gorilla/websocket"
 	rmq "github.com/rabbitmq/rabbitmq-amqp-go-client/pkg/rabbitmqamqp"
 )
 
-//var cliens = make(map[string]*websocket.Conn)
-//var mu sync.RWMutex
+var Clients = make(map[string]*websocket.Conn)
+var Mu sync.RWMutex
+
+func NewWebSocketHandler(logger *slog.Logger) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		jobID := r.URL.Query().Get("jobID")
+
+		//HTTP -> Websocket upgrade
+		upgrader := websocket.Upgrader{}
+		con, err := upgrader.Upgrade(w, r, nil)
+		if err != nil {
+			logger.Error("Failed to upgrade to Websocket connection")
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+
+		logger.Info("Connected to websocket")
+
+		Mu.Lock()
+		Clients[jobID] = con
+		Mu.Unlock()
+
+		logger.Info("Websocket saved", "jobID", jobID)
+	}
+}
 
 func NewOCRRequestHandler(logger *slog.Logger, minio_client storage.Storage, rabbitmq queue.Queue) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
