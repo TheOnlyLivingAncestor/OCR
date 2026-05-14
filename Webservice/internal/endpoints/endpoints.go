@@ -31,6 +31,7 @@ func NewWebSocketHandler(logger *slog.Logger) http.HandlerFunc {
 		if err != nil {
 			logger.Error("Failed to upgrade to Websocket connection", "error", err)
 			w.WriteHeader(http.StatusInternalServerError)
+			return
 		}
 
 		logger.Info("Connected to websocket")
