@@ -164,6 +164,9 @@ consumer_loop:
 
 			if con != nil {
 				err = con.WriteJSON(ocr_result)
+				if err != nil {
+					logger.Error("Failed to write to websocket", "error", err)
+				}
 			} else {
 				logger.Error("Websocket connection was not found", "jobID", ocr_result.JobID)
 			}
