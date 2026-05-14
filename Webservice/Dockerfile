@@ -3,11 +3,13 @@
 ############################################
 FROM docker.io/golang:latest as build
 
+WORKDIR /app
+
 # Copy the source files from the host
-COPY . /
+COPY . .
 
 # Set the working directory to the same place we copied the code
-WORKDIR /
+WORKDIR /app/Webservice
 
 RUN go mod download
 
