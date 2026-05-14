@@ -21,10 +21,14 @@ func NewWebSocketHandler(logger *slog.Logger) http.HandlerFunc {
 		jobID := r.URL.Query().Get("jobID")
 
 		//HTTP -> Websocket upgrade
-		upgrader := websocket.Upgrader{}
+		upgrader := websocket.Upgrader{
+			CheckOrigin: func(r *http.Request) bool {
+				return true
+			},
+		}
 		con, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
-			logger.Error("Failed to upgrade to Websocket connection")
+			logger.Error("Failed to upgrade to Websocket connection", "error", err)
 			w.WriteHeader(http.StatusInternalServerError)
 		}
 
