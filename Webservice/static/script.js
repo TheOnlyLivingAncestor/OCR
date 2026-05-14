@@ -40,7 +40,7 @@ form.addEventListener("submit", async (event) => {
     }
 
     try {
-        const jobID = await imageProcessing(image, description);
+        const jobID = await imageUpload(image, description);
         console.log("JobID", jobID)
         const socket = new WebSocket(
             `ws://localhost:8080/ws?jobID=${jobID}`
