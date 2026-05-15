@@ -33,10 +33,7 @@ var RabbitPassword = "guest"
 
 func valid_email(s string) bool {
 	_, err := mail.ParseAddress(s)
-	if err != nil {
-		return true
-	}
-	return false
+	return err != nil
 }
 
 func read_rabbitmq() {
@@ -110,7 +107,7 @@ func read_emails() {
 	if os.Getenv("RECIPIENTS") != "" {
 		logger.Info("RECIPIENTS environment variable is set", "value", os.Getenv("RECIPIENTS"))
 		//Vesszővel elválasztott stringek, amiket fel kell darabolni
-		env_emails := strings.SplitN(os.Getenv("RECIPIENTS"), ",", -1)
+		env_emails := strings.Split(os.Getenv("RECIPIENTS"), ",")
 		//Levalidáljuk, hogy valós email címek-e
 		if valid_emails := slices.DeleteFunc(env_emails, valid_email); valid_emails != nil {
 			//Ha sikeresen beparszoltunk valid email-okat, akkor felülcsapjuk a defaultot
