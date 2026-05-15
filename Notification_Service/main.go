@@ -20,8 +20,8 @@ import (
 var logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
 
 var Emails = []string{"vitez.alexandra@icloud.com"}
-var SMTPPassword = "rfbi hdlb jenz dftr"
-var SMTPUser = "vitez.alexandra@gmail.com"
+var SMTPPassword = ""
+var SMTPUser = ""
 var SMTPAddr = "smtp.gmail.com"
 var SMTPPort = "587"
 

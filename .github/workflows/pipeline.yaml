@@ -37,7 +37,7 @@ jobs:
             ocr-worker:
               - 'OCR_Service/Worker/**'
             notification:
-              - 'Notification_service/!(helm/**)/**'
+              - 'Notification_Service/!(helm/**)/**'
 
 
 
