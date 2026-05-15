@@ -11,3 +11,5 @@ rabbitmq:
 smtp:
   service_host: smtp.gmail.com
   service_port: "587"
+  recipients:
+    - vitez.alexandra@icloud.com

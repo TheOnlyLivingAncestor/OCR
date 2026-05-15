@@ -60,6 +60,11 @@ spec:
                 secretKeyRef:
                   name: smtp-secret
                   key: password
+            - name: RECIPIENTS
+              valueFrom:
+                configMapKeyRef:
+                  name: smtp-configmap
+                  key: recipients
           ports:
             - name: http
               containerPort: 8080

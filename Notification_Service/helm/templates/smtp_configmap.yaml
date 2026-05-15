@@ -5,3 +5,4 @@ metadata:
 data:
   smtp_service_name: "{{ .Values.smtp.service_name}}"
   smtp_rabbitmq_service_port: "{{ .Values.smtp.service_port}}"
+  recipients: '{{ join "," .Values.smtp.recipients }}'
