@@ -20,6 +20,7 @@ func NewWebSocketHandler(logger *slog.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		logger.Info("WS HIT", "url", r.URL.String())
 		jobID := r.URL.Query().Get("jobID")
+		logger.Info("Websocket connected", "jobID", jobID)
 
 		//HTTP -> Websocket upgrade
 		upgrader := websocket.Upgrader{

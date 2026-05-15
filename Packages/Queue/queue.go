@@ -31,9 +31,10 @@ type RmqMessage struct {
 }
 
 type RmqSuccess struct {
-	Message     string `json:"msg"`
-	JobID       string `json:"jobID"`
-	Description string `json:"description"`
+	Message     string   `json:"msg"`
+	JobID       string   `json:"jobID"`
+	Description string   `json:"description"`
+	Results     []string `json:"results"`
 }
 
 type RabbitMQ struct {
