@@ -104,7 +104,7 @@ if __name__ == "__main__":
             "msg": "OCR request recognition finished",
             "jobID": jobID,
             "description": description,
-            "results": results
+            "results": results_json
         }
         encoded_message_body = json.dumps(message_body).encode("utf-8")
         msg = Message(body=encoded_message_body)
