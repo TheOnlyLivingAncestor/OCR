@@ -1,7 +1,7 @@
 #egyenlőre az image tagolása a lényeg -> a helm chart további részét majd kitöltjük a fejlesztéskor
 env:
   #APP_VERSION egy string, amely a docker image tag-et fogja tartalmazni. A commit sha-t fogjuk erre használni.
-  APP_VERSION: db7126e54af456b1bbdc6f959c8aff863396c900
+  APP_VERSION: e72aff47246b1c50a8b61ab9f4a4652d4c573e84
 rabbitmq:
   service_name: hello-world.rabbitmq-cluster.svc.cluster.local
   service_port: 5672
