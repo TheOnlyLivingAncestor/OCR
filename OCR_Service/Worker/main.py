@@ -40,12 +40,14 @@ if __name__ == "__main__":
     downloadUrl = get_env("DOWNLOAD_URL")
     uploadUrl = get_env("UPLOAD_URL")
     jobID = get_env("JOBID")
+    description = get_env("DESCRIPTION")
 
     logging.info(f"rabbitAddress: {rabbitAddress}")
     logging.info(f"publisherQueue: {publisherQueue}")
     logging.info(f"downloadUrl: {downloadUrl}")
     logging.info(f"uploadUrl: {uploadUrl}")
     logging.info(f"jobID: {jobID}")
+    logging.info(f"description: {description}")
     try:
         # Letöltjük a képet és elvégezzük rajta a szövegfelismerést
         image = download_image(downloadUrl)
@@ -100,7 +102,8 @@ if __name__ == "__main__":
 
         message_body = {
             "msg": "OCR request recognition finished",
-            "jobID": jobID
+            "jobID": jobID,
+            "description": description
         }
         encoded_message_body = json.dumps(message_body).encode("utf-8")
         msg = Message(body=encoded_message_body)

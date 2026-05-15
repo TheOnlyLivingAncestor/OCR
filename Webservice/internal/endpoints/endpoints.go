@@ -123,6 +123,7 @@ func NewOCRRequestHandler(logger *slog.Logger, minio_client storage.Storage, rab
 			Download_link: download_link,
 			Upload_link:   upload_link,
 			JobID:         id,
+			Description:   description,
 		})
 		if err != nil {
 			logger.Error("Failed to Marshal RabbitMQ message", "error", err)
@@ -131,7 +132,6 @@ func NewOCRRequestHandler(logger *slog.Logger, minio_client storage.Storage, rab
 		if err != nil {
 			logger.Error("Failed to publish message", "error", err)
 		}
-		//Bele kell tenni egy globális változóba az OCR requestet
 		switch publish_result.Outcome.(type) {
 		case *rmq.StateAccepted:
 			logger.Info("The ocr-request message was accepted by RabbitMQ.")

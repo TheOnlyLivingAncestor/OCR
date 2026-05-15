@@ -27,11 +27,13 @@ type RmqMessage struct {
 	Download_link string `json:"download_link"`
 	Upload_link   string `json:"upload_link"`
 	JobID         string `json:"jobID"`
+	Description   string `json:"description"`
 }
 
 type RmqSuccess struct {
-	Message string `json:"msg"`
-	JobID   string `json:"jobID"`
+	Message     string `json:"msg"`
+	JobID       string `json:"jobID"`
+	Description string `json:"description"`
 }
 
 type RabbitMQ struct {

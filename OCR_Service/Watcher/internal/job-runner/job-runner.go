@@ -61,6 +61,10 @@ func (j *JobRunner) CreateJob(ocrData queue.RmqMessage) error {
 									Value: ocrData.JobID,
 								},
 								{
+									Name:  "DESCRIPTION",
+									Value: ocrData.Description,
+								},
+								{
 									Name:  "RABBITMQ_URL",
 									Value: j.rmqAddress,
 								},
