@@ -97,9 +97,7 @@ if __name__ == "__main__":
 
         management = connection.management()
 
-        exchange_address = AddressHelper.exchange_address(
-            exchange=publisherExchange
-        )
+        exchange_address = AddressHelper.exchange_address(publisherExchange)
         publisher = connection.publisher(exchange_address)
 
         message_body = {
