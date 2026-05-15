@@ -22,7 +22,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -o notification_service
 FROM scratch
 
 # Copy the binary from the host.
-COPY --from=build /notification_service .
+COPY --from=build /app/Notification_Service/notification_service .
 
 # Tell Docker to execute this command on a `docker run`.
 CMD ["/notification_service"]
