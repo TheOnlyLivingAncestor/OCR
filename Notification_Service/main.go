@@ -140,8 +140,7 @@ func send_email(msg []byte) {
 
 	defer func() {
 		if err := conn.Close(); err != nil {
-			logger.Error("Failed to close connection", "error", err)
-			panic(err)
+			logger.Error("Failed to close connection, it might be already closed", "error", err)
 		}
 	}()
 
