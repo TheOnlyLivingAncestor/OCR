@@ -36,14 +36,14 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
     rabbitAddress = get_env("RABBITMQ_URL")
-    publisherQueue = get_env("RABBITMQ_PUBLISHER_QUEUE")
+    publisherExchange = get_env("RABBITMQ_PUBLISHER_EXCHANGE")
     downloadUrl = get_env("DOWNLOAD_URL")
     uploadUrl = get_env("UPLOAD_URL")
     jobID = get_env("JOBID")
     description = get_env("DESCRIPTION")
 
     logging.info(f"rabbitAddress: {rabbitAddress}")
-    logging.info(f"publisherQueue: {publisherQueue}")
+    logging.info(f"publisherExchange: {publisherExchange}")
     logging.info(f"downloadUrl: {downloadUrl}")
     logging.info(f"uploadUrl: {uploadUrl}")
     logging.info(f"jobID: {jobID}")
@@ -97,8 +97,10 @@ if __name__ == "__main__":
 
         management = connection.management()
 
-        queue_address = AddressHelper.queue_address(publisherQueue)
-        publisher = connection.publisher(queue_address)
+        exchange_address = AddressHelper.exchange_address(
+            exchange=publisherExchange
+        )
+        publisher = connection.publisher(exchange_address)
 
         message_body = {
             "msg": "OCR request recognition finished",

@@ -282,7 +282,8 @@ jobs:
         - name: Build and push notification Docker image
           uses: docker/build-push-action@v4
           with:
-            context: ./Notification_Service
+            context: .
+            file: ./Notification_Service/Dockerfile
             push: true
             platforms: linux/arm64
             tags: ${{ env.DOCKERHUB_USERNAME }}/${{ env.NOTIFICATION_IMAGE_NAME }}:${{ github.sha }}

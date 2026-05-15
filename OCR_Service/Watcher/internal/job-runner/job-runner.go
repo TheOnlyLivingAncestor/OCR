@@ -17,19 +17,19 @@ var logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
 var jobNamePrefix = "ocr-job-"
 
 type JobRunner struct {
-	clientSet      *kubernetes.Clientset
-	rmqAddress     string
-	publisherQueue string
-	dockerImage    string
+	clientSet         *kubernetes.Clientset
+	rmqAddress        string
+	publisherExchange string
+	dockerImage       string
 }
 
-func NewJobRunner(kubeconfig *rest.Config, rmqAddress string, publisherqueue string, image string) (*JobRunner, error) {
+func NewJobRunner(kubeconfig *rest.Config, rmqAddress string, publisherexchange string, image string) (*JobRunner, error) {
 	clientSet, err := kubernetes.NewForConfig(kubeconfig)
 	if err != nil {
 		logger.Error("Failed to create Kubernetes clientset", "error", err)
 		return &JobRunner{}, err
 	}
-	return &JobRunner{clientSet: clientSet, rmqAddress: rmqAddress, publisherQueue: publisherqueue, dockerImage: image}, nil
+	return &JobRunner{clientSet: clientSet, rmqAddress: rmqAddress, publisherExchange: publisherexchange, dockerImage: image}, nil
 }
 
 func (j *JobRunner) CreateJob(ocrData queue.RmqMessage) error {
@@ -69,8 +69,8 @@ func (j *JobRunner) CreateJob(ocrData queue.RmqMessage) error {
 									Value: j.rmqAddress,
 								},
 								{
-									Name:  "RABBITMQ_PUBLISHER_QUEUE",
-									Value: j.publisherQueue,
+									Name:  "RABBITMQ_PUBLISHER_EXCHANGE",
+									Value: j.publisherExchange,
 								},
 							},
 						},

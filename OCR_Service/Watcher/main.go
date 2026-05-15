@@ -17,7 +17,7 @@ import (
 var RabbitAddr = "hello-world.rabbitmq-cluster.svc.cluster.local"
 var RabbitPort = "5672"
 var RabbitConsumerQueue = "recognition-request"
-var RabbitPublisherQueue = "recognition-successful"
+var RabbitPublisherExchange = "recognition-successful"
 var RabbitUser = "guest"
 var RabbitPassword = "guest"
 
@@ -35,11 +35,11 @@ func read_rabbit_environment() {
 		logger.Info("RABBIT_CONSUMER_QUEUE environment variable is not set, using default", "value", RabbitConsumerQueue)
 	}
 
-	if os.Getenv("RABBIT_PUBLISHER_QUEUE") != "" {
-		logger.Info("RABBIT_PUBLISHER_QUEUE environment variable is set, using that", "value", os.Getenv("RABBIT_PUBLISHER_QUEUE"))
-		RabbitPublisherQueue = os.Getenv("RABBIT_PUBLISHER_QUEUE")
+	if os.Getenv("RABBIT_PUBLISHER_EXCHANGE") != "" {
+		logger.Info("RABBIT_PUBLISHER_EXCHANGE environment variable is set, using that", "value", os.Getenv("RABBIT_PUBLISHER_EXCHANGE"))
+		RabbitPublisherExchange = os.Getenv("RABBIT_PUBLISHER_EXCHANGE")
 	} else {
-		logger.Info("RABBIT_CONSUMER_QUEUE environment variable is not set, using default", "value", RabbitPublisherQueue)
+		logger.Info("RABBIT_CONSUMER_EXCHANGE environment variable is not set, using default", "value", RabbitPublisherExchange)
 	}
 
 	if os.Getenv("RABBIT_ADDR") != "" {
@@ -123,7 +123,7 @@ func main() {
 		logger.Error("Failed to get cluster kubeconfig, exiting", "error", err)
 		os.Exit(1)
 	}
-	jobRunner, err := jobrunner.NewJobRunner(config, "amqp://"+RabbitUser+":"+RabbitPassword+"@"+RabbitAddr+":"+RabbitPort+"/", RabbitPublisherQueue, "vitezalexandra/"+WorkerImageName+":"+WorkerImageTag)
+	jobRunner, err := jobrunner.NewJobRunner(config, "amqp://"+RabbitUser+":"+RabbitPassword+"@"+RabbitAddr+":"+RabbitPort+"/", RabbitPublisherExchange, "vitezalexandra/"+WorkerImageName+":"+WorkerImageTag)
 	if err != nil {
 		logger.Error("Failed to configure jobrunner, exiting", "error", err)
 		os.Exit(1)

@@ -8,4 +8,4 @@ rabbitmq:
   username: default_user_waFUPHY_m019tVF5FlC 
   password: J5RSzqB3jpZzIFtuFhenV7Nabw3Sb3g6
   consumer_queue: recognition-request
-  publisher_queue: recognition-successful
+  publisher_exchange: ocr_successful_exchange
