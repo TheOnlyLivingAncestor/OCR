@@ -23,6 +23,7 @@ FROM scratch
 
 # Copy the binary from the host.
 COPY --from=build /app/Notification_Service/notification_service .
+COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
 # Tell Docker to execute this command on a `docker run`.
 CMD ["/notification_service"]
