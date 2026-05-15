@@ -2,3 +2,12 @@
 env:
   #APP_VERSION egy string, amely a docker image tag-et fogja tartalmazni. A commit sha-t fogjuk erre használni.
   APP_VERSION: db7126e54af456b1bbdc6f959c8aff863396c900
+rabbitmq:
+  service_name: hello-world.rabbitmq-cluster.svc.cluster.local
+  service_port: 5672
+  consumer_queue_name: recognition-notification
+  username: default_user_waFUPHY_m019tVF5FlC
+  password: J5RSzqB3jpZzIFtuFhenV7Nabw3Sb3g6
+smtp:
+  service_host: smtp.gmail.com
+  service_port: "587"
